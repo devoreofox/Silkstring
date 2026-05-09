@@ -26,4 +26,15 @@ public class AliasEntry
         if (Output.Count  == 0) return false;
         return !Output.Any(command => string.IsNullOrWhiteSpace(command));
     }
+
+    public AliasEntry Clone()
+    {
+        return new AliasEntry
+        {
+            Enabled = Enabled,
+            Name = Name,
+            Output = new List<string>(Output),
+        };
+
+    }
 }
