@@ -3,7 +3,7 @@
     "Name": "Silkstring",
     "Punchline": "Define custom command aliases that execute multiple commands in sequence.",
     "Description": "Silkstring lets you create custom command aliases that expand into one or more chat commands, executed in order. Use /silkstring to open the settings window.",
-    "IconUrl": "images/icon.png",
+    "IconUrl": "https://raw.githubusercontent.com/devoreofox/Silkstring/main/Silkstring/images/icon.png",
     "ApplicableVersion": "any",
     "Tags": [
         "commands",
