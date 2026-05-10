@@ -113,9 +113,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
                     var alias = Configuration.Aliases.FirstOrDefault(a =>
                                                                          a.Enabled &&
                                                                          a.IsValid() &&
-                                                                         a.Name.Equals(
-                                                                             commandName,
-                                                                             StringComparison.OrdinalIgnoreCase));
+                                                                         a.Name.Split('|', StringSplitOptions.TrimEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
                     if (alias != null)
                     {
                         var commands = alias.Output
