@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*.*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog for version
+        id: changelog
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.VERSION }}'
+          $content = Get-Content 'CHANGELOG.md' -Raw
+          $pattern = "## v$version(.*?)(?=## v|\Z)"
+          $match = [regex]::Match($content, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+          if ($match.Success) {
+            $notes = $match.Groups[1].Value.Trim()
+          } else {
+            $notes = "See CHANGELOG.md for details."
+          }
+          $notes | Out-File -FilePath release_notes.txt -Encoding utf8
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
+
+      - name: Update Silkstring.json version
+        shell: pwsh
+        run: |
+          $json = Get-Content 'Silkstring/Silkstring.json' | ConvertFrom-Json
+          $json.AssemblyVersion = '${{ steps.version.outputs.VERSION }}'
+          $json | ConvertTo-Json | Set-Content 'Silkstring/Silkstring.json'
+
+      - name: Build
+        run: dotnet build Silkstring/Silkstring.csproj --configuration Release -p:Version=${{ steps.version.outputs.VERSION }} -p:AssemblyVersion=${{ steps.version.outputs.VERSION }}
+
+      - name: Create zip
+        shell: pwsh
+        run: |
+          $output = 'Silkstring/bin/x64/Release'
+          Compress-Archive -Path "$output/*" -DestinationPath 'Silkstring.zip'
+
+      - name: Update repo.json
+        shell: pwsh
+        run: |
+          $json = Get-Content 'repo.json' | ConvertFrom-Json
+          $json[0].AssemblyVersion = '${{ steps.version.outputs.VERSION }}'
+          $json[0].Version = '${{ steps.version.outputs.VERSION }}'
+          $json | ConvertTo-Json | Set-Content 'repo.json'
+
+      - name: Commit repo.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add repo.json Silkstring/Silkstring.json
+          git commit -m "bump version to ${{ steps.version.outputs.VERSION }}"
+          git push origin HEAD:main
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Silkstring.zip
+          generate_release_notes: false
+          body_path: release_notes.txt

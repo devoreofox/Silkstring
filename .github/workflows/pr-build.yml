@@ -1,39 +1,29 @@
-name: Sample PR Builder for SamplePlugin
-
+name: Silkstring PR Builder
 on:
   pull_request:
-    branches: [ master ]
-
+    branches: [ main ]
 jobs:
-
   build:
     runs-on: windows-2022
-
     env:
-      Solution_Name: SamplePlugin
-
+      Solution_Name: Silkstring
     steps:
     - name: Checkout
       uses: actions/checkout@v5
-
     - name: Install .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 10.0.x
-
+        dotnet-version: '10.x'
     - name: Download Dalamud
       run: |
         Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
         Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
-
     - name: Build with dotnet
       run: dotnet build --configuration Release
-
     - name: Store artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: SamplePlugin
-        path: .\SamplePlugin\bin\x64\Release\SamplePlugin\*
+        name: Silkstring
+        path: .\Silkstring\bin\x64\Release\*
         if-no-files-found: error
         retention-days: 1
-
