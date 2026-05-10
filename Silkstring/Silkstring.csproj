@@ -13,4 +13,8 @@
       <Visible>false</Visible>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ECommons" Version="3.2.0.18" />
+  </ItemGroup>
 </Project>

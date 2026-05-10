@@ -6,10 +6,13 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using System.Threading.Tasks;
+using ECommons;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.Shell;
 using Serilog;
+using Silkstring.Services;
 using Silkstring.Windows;
 
 namespace Silkstring;
@@ -25,6 +28,9 @@ public sealed unsafe class Plugin : IDalamudPlugin
     [PluginService]
     internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
 
+    [PluginService]
+    internal static IFramework Framework { get; private set; } = null!;
+
     private const string CommandName = "/silkstring";
 
     public Configuration Configuration { get; init; }
@@ -38,6 +44,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+        ECommonsMain.Init(PluginInterface, this);
 
         processChatInputHook = GameInteropProvider.HookFromAddress<ShellCommandModule.Delegates.ExecuteCommandInner>(
             ShellCommandModule.MemberFunctionPointers.ExecuteCommandInner,
@@ -61,6 +69,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        ECommonsMain.Dispose();
+
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
 
@@ -101,14 +111,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
                                                                              StringComparison.OrdinalIgnoreCase));
                     if (alias != null)
                     {
-                        foreach (var entry in alias.Output)
-                        {
-                            var commandText = "/" + entry.Command.TrimStart('/');
-                            var str = Utf8String.FromString(commandText);
-                            processChatInputHook.Original(shellCommandModule, str, uiModule);
-                            str->Dtor(true);
-                        }
-
+                        var commands = alias.Output
+                                            .Where(c => !string.IsNullOrWhiteSpace(c.Command))
+                                            .Select(c => "/" + c.Command.TrimStart('/'))
+                                            .ToList();
+                        _ = CommandHandler.ExecuteAsync(commands);
                         return;
                     }
                 }
