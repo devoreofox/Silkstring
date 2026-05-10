@@ -19,4 +19,9 @@ public class CommandEntry
             Command = Command
         };
     }
+
+    public string Strip()
+    {
+        return Command.TrimStart('/');
+    }
 }

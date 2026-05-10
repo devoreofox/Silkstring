@@ -1,19 +1,26 @@
 ﻿using Dalamud.Game.Command;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.Shell;
 using Silkstring.Windows;
 
 namespace Silkstring;
 
-public sealed class Plugin : IDalamudPlugin
+public sealed unsafe class Plugin : IDalamudPlugin
 {
     [PluginService]
     internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
 
     [PluginService]
     internal static ICommandManager CommandManager { get; private set; } = null!;
+
+    [PluginService]
+    internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
 
     private const string CommandName = "/silkstring";
 
@@ -23,9 +30,16 @@ public sealed class Plugin : IDalamudPlugin
     private EditWindow EditWindow { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
 
+    private Hook<ShellCommandModule.Delegates.ExecuteCommandInner> processChatInputHook;
+
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+        processChatInputHook = GameInteropProvider.HookFromFunctionPointerVariable<ShellCommandModule.Delegates.ExecuteCommandInner>(
+            (nint)ShellCommandModule.MemberFunctionPointers.ExecuteCommandInner,
+            ProcessChatInputDetour);
+        processChatInputHook.Enable();
 
         EditWindow = new EditWindow(this);
         ConfigWindow = new ConfigWindow(this, EditWindow);
@@ -47,6 +61,9 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
 
+        processChatInputHook?.Disable();
+        processChatInputHook?.Dispose();
+
         WindowSystem.RemoveAllWindows();
 
         ConfigWindow.Dispose();
@@ -61,4 +78,9 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
+
+    private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
+    {
+        processChatInputHook!.Original(shellCommandModule, message, uiModule);
+    }
 }

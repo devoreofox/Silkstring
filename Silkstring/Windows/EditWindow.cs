@@ -10,8 +10,8 @@ namespace Silkstring.Windows;
 public class EditWindow : Window, IDisposable
 {
     private readonly Configuration configuration;
-    private AliasEntry aliasCache;
-    private AliasEntry originalAlias;
+    private AliasEntry? aliasCache;
+    private AliasEntry? originalAlias;
 
     public EditWindow(Plugin plugin) : base("Edit Alias###EditWindow")
     {
@@ -30,10 +30,10 @@ public class EditWindow : Window, IDisposable
 
     public override void Draw()
     {
+        if (aliasCache == null || originalAlias == null) return;
         ImGui.InputText("Alias", ref aliasCache.Name);
 
         ImGui.Columns(2);
-        var size = ImGui.GetIO().FontGlobalScale;
 
         ImGui.Text("Command");
         ImGui.NextColumn();

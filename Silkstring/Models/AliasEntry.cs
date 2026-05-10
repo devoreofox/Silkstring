@@ -23,6 +23,7 @@ public class AliasEntry
         if (string.IsNullOrWhiteSpace(Name)) return false;
         if (Blacklist.Contains(Name)) return false;
         if (Name.Contains(' ')) return false;
+        if (Name.Contains('/')) return false;
         if (Output.Count  == 0) return false;
         return !Output.Any(command => string.IsNullOrWhiteSpace(command.Command));
     }
