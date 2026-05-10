@@ -44,6 +44,13 @@ public class ConfigWindow : Window, IDisposable
             configuration.Save();
         }
 
+        var multiline = configuration.MultilineCommands;
+        if (ImGui.Checkbox("Multiline command entry", ref multiline))
+        {
+            configuration.MultilineCommands = multiline;
+            configuration.Save();
+        }
+
         var availableHeight = ImGui.GetContentRegionAvail().Y;
         var buttonHeight = ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.Y + ImGui.GetStyle().WindowPadding.Y * 2 + 4;
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + availableHeight - buttonHeight);
