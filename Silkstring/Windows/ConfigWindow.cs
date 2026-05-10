@@ -2,7 +2,7 @@
 using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
-using FFXIVClientStructs.FFXIV.Common.Math;
+using System.Numerics;
 using Silkstring.Models;
 
 namespace Silkstring.Windows;
@@ -10,9 +10,11 @@ namespace Silkstring.Windows;
 public class ConfigWindow : Window, IDisposable
 {
     private readonly Configuration configuration;
-    public ConfigWindow(Plugin plugin) : base("Silkstring Aliases###Config")
+    private readonly EditWindow editWindow;
+    public ConfigWindow(Plugin plugin, EditWindow editWindow) : base("Silkstring Aliases###Config")
     {
         configuration = plugin.Configuration;
+        this.editWindow = editWindow;
     }
 
     public void Dispose() { }
@@ -67,7 +69,7 @@ public class ConfigWindow : Window, IDisposable
 
             if (ImGui.Button("Edit###edit" + alias.UniqueId))
             {
-                // TODO: open EditWindow
+                editWindow.Open(alias);
             }
             ImGui.NextColumn();
 

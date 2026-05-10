@@ -20,16 +20,18 @@ public sealed class Plugin : IDalamudPlugin
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("Silkstring");
+    private EditWindow EditWindow { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
 
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-
-        ConfigWindow = new ConfigWindow(this);
+        EditWindow = new EditWindow(this);
+        ConfigWindow = new ConfigWindow(this, EditWindow);
 
         WindowSystem.AddWindow(ConfigWindow);
+        WindowSystem.AddWindow(EditWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -48,6 +50,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.RemoveAllWindows();
 
         ConfigWindow.Dispose();
+        EditWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
     }

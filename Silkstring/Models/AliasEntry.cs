@@ -10,7 +10,7 @@ public class AliasEntry
 
     public bool Enabled = true;
     public string Name = string.Empty;
-    public List<string> Output = new();
+    public List<CommandEntry> Output = new();
 
     [NonSerialized]
     public bool Delete;
@@ -24,7 +24,7 @@ public class AliasEntry
         if (Blacklist.Contains(Name)) return false;
         if (Name.Contains(' ')) return false;
         if (Output.Count  == 0) return false;
-        return !Output.Any(command => string.IsNullOrWhiteSpace(command));
+        return !Output.Any(command => string.IsNullOrWhiteSpace(command.Command));
     }
 
     public AliasEntry Clone()
@@ -33,7 +33,7 @@ public class AliasEntry
         {
             Enabled = Enabled,
             Name = Name,
-            Output = new List<string>(Output),
+            Output = Output.Select(c => c.Clone()).ToList()
         };
 
     }
