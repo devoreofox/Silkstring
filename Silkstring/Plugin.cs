@@ -82,8 +82,42 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
 
-    private unsafe void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
+    private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
     {
+        try
+        {
+            var inputString = message->ToString();
+            if (inputString.StartsWith('/'))
+            {
+                var splitString = inputString.Split(' ');
+                if (splitString.Length > 0)
+                {
+                    var commandName = splitString[0][1..];
+                    var alias = Configuration.Aliases.FirstOrDefault(a =>
+                                                                         a.Enabled &&
+                                                                         a.IsValid() &&
+                                                                         a.Name.Equals(
+                                                                             commandName,
+                                                                             StringComparison.OrdinalIgnoreCase));
+                    if (alias != null)
+                    {
+                        foreach (var entry in alias.Output)
+                        {
+                            var commandText = "/" + entry.Command.TrimStart('/');
+                            var str = Utf8String.FromString(commandText);
+                            processChatInputHook.Original(shellCommandModule, str, uiModule);
+                            str->Dtor(true);
+                        }
+
+                        return;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex.Message);
+        }
         processChatInputHook.Original(shellCommandModule, message, uiModule);
     }
 }
