@@ -38,6 +38,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
     public readonly WindowSystem WindowSystem = new("Silkstring");
     private EditWindow EditWindow { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
+    private MainWindow MainWindow { get; init; }
 
     private Hook<ShellCommandModule.Delegates.ExecuteCommandInner> processChatInputHook;
 
@@ -53,8 +54,10 @@ public sealed unsafe class Plugin : IDalamudPlugin
         processChatInputHook.Enable();
 
         EditWindow = new EditWindow(this);
-        ConfigWindow = new ConfigWindow(this, EditWindow);
+        ConfigWindow = new ConfigWindow(this);
+        MainWindow = new MainWindow(this, EditWindow, ConfigWindow);
 
+        WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(EditWindow);
 
@@ -65,6 +68,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
     }
 
     public void Dispose()
@@ -73,12 +77,14 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
 
         processChatInputHook?.Disable();
         processChatInputHook?.Dispose();
 
         WindowSystem.RemoveAllWindows();
 
+        MainWindow.Dispose();
         ConfigWindow.Dispose();
         EditWindow.Dispose();
 
@@ -87,10 +93,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     private void OnCommand(string command, string args)
     {
-        ConfigWindow.Toggle();
+        MainWindow.Toggle();
     }
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
+    public void ToggleMainUi() => MainWindow.Toggle();
 
     private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
     {
@@ -115,7 +122,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
                                             .Where(c => !string.IsNullOrWhiteSpace(c.Command))
                                             .Select(c => "/" + c.Command.TrimStart('/'))
                                             .ToList();
-                        _ = CommandHandler.ExecuteAsync(commands);
+                        _ = CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay);
                         return;
                     }
                 }

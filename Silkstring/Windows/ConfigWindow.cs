@@ -1,20 +1,17 @@
-﻿using System;
-using System.Linq;
-using Dalamud.Bindings.ImGui;
+using System;
 using Dalamud.Interface.Windowing;
 using System.Numerics;
-using Silkstring.Models;
+using Dalamud.Bindings.ImGui;
 
 namespace Silkstring.Windows;
 
 public class ConfigWindow : Window, IDisposable
 {
     private readonly Configuration configuration;
-    private readonly EditWindow editWindow;
-    public ConfigWindow(Plugin plugin, EditWindow editWindow) : base("Silkstring Aliases###Config")
+
+    public ConfigWindow(Plugin plugin) : base("Silkstring Settings###Config")
     {
         configuration = plugin.Configuration;
-        this.editWindow = editWindow;
     }
 
     public void Dispose() { }
@@ -23,76 +20,48 @@ public class ConfigWindow : Window, IDisposable
     {
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(400, 200),
+            MinimumSize = new Vector2(250, 150),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
     }
 
     public override void Draw()
     {
-        ImGui.Columns(4);
-        var size = ImGui.GetIO().FontGlobalScale;
-        ImGui.SetColumnWidth(0, 60 * size);
-        ImGui.SetColumnWidth(1, 200 * size);
-        ImGui.SetColumnWidth(2,  40 * size);
-        ImGui.SetColumnWidth(3,  55 * size);
-
-        ImGui.Text("Enabled");
-        ImGui.NextColumn();
-
-        ImGui.Text("Command");
-        ImGui.NextColumn();
-
-        ImGui.NextColumn();
-        ImGui.NextColumn();
-
-        foreach (var alias in configuration.Aliases)
+        ImGui.Text("Command Delay (ms)");
+        var delay = configuration.CommandDelay;
+        ImGui.SetNextItemWidth(150);
+        if (ImGui.InputInt("###delayInput", ref delay, 10, 100))
         {
-            if (alias.UniqueId == 0)
-            {
-                alias.UniqueId = configuration.Aliases.Max(a => a.UniqueId) + 1;
-            }
-
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - (16 * size));
-            if (ImGui.Checkbox($"###toggle{alias.UniqueId}", ref alias.Enabled))
-            {
-                configuration.Save();
-            }
-            ImGui.NextColumn();
-
-            ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputText("###name" + alias.UniqueId, ref alias.Name, 100))
-            {
-                configuration.Save();
-            }
-            ImGui.NextColumn();
-
-            if (ImGui.Button("Edit###edit" + alias.UniqueId))
-            {
-                editWindow.Open(alias);
-            }
-            ImGui.NextColumn();
-
-            var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
-            ImGui.BeginDisabled(!canDelete);
-            if (ImGui.Button("Delete###delete" + alias.UniqueId)) alias.Delete = true;
-            ImGui.EndDisabled();
-            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip("Hold Shift + Ctrl to delete");
-            ImGui.NextColumn();
-        }
-
-        ImGui.Columns(1);
-
-        if (configuration.Aliases.RemoveAll(a => a.Delete) > 0)
-        {
+            delay = Math.Clamp(delay, 0, 1000);
+            configuration.CommandDelay = delay;
             configuration.Save();
         }
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(200);
+        if (ImGui.SliderInt("###delaySlider", ref delay, 0, 1000))
+        {
+            configuration.CommandDelay = delay;
+            configuration.Save();
+        }
+
+        var availableHeight = ImGui.GetContentRegionAvail().Y;
+        var buttonHeight = ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.Y + ImGui.GetStyle().WindowPadding.Y * 2 + 4;
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + availableHeight - buttonHeight);
 
         ImGui.Separator();
-        if (ImGui.Button("Add Alias"))
+        var closeButtonWidth = ImGui.CalcTextSize("Close").X + ImGui.GetStyle().FramePadding.X * 2;
+        ImGui.SetCursorPos(new Vector2(
+                               ImGui.GetWindowWidth() - closeButtonWidth - ImGui.GetStyle().WindowPadding.X - 16,
+                               ImGui.GetCursorPosY() + 25
+                           ));
+        if (ImGui.Button("Close"))
         {
-            configuration.Aliases.Add(new AliasEntry());
-            configuration.Save();
+            IsOpen = false;
         }
+    }
+
+    public void Open()
+    {
+        IsOpen = true;
     }
 }
