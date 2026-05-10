@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.Command;
+﻿using System;
+using System.Linq;
+using Dalamud.Game.Command;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -7,6 +9,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.Shell;
+using Serilog;
 using Silkstring.Windows;
 
 namespace Silkstring;
@@ -36,8 +39,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        processChatInputHook = GameInteropProvider.HookFromFunctionPointerVariable<ShellCommandModule.Delegates.ExecuteCommandInner>(
-            (nint)ShellCommandModule.MemberFunctionPointers.ExecuteCommandInner,
+        processChatInputHook = GameInteropProvider.HookFromAddress<ShellCommandModule.Delegates.ExecuteCommandInner>(
+            ShellCommandModule.MemberFunctionPointers.ExecuteCommandInner,
             ProcessChatInputDetour);
         processChatInputHook.Enable();
 
@@ -79,8 +82,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
 
-    private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
+    private unsafe void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
     {
-        processChatInputHook!.Original(shellCommandModule, message, uiModule);
+        processChatInputHook.Original(shellCommandModule, message, uiModule);
     }
 }
