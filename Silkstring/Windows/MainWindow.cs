@@ -43,6 +43,8 @@ public class MainWindow : Window, IDisposable
         ImGui.NextColumn();
 
         ImGui.Text("Command");
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Separate multiple aliases with | e.g. hello|hi|hey");
         ImGui.NextColumn();
 
         ImGui.NextColumn();

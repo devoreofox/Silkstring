@@ -20,10 +20,16 @@ public class AliasEntry
 
     public bool IsValid()
     {
-        if (string.IsNullOrWhiteSpace(Name)) return false;
-        if (Blacklist.Contains(Name)) return false;
-        if (Name.Contains(' ')) return false;
-        if (Name.Contains('/')) return false;
+        var names = Name.Split('|', StringSplitOptions.TrimEntries);
+        if (names.Length == 0) return false;
+
+        foreach (var name in names)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            if (Blacklist.Contains(name)) return false;
+            if (name.Contains(' ')) return false;
+            if (name.Contains('/')) return false;
+        }
         if (Output.Count  == 0) return false;
         return !Output.Any(command => string.IsNullOrWhiteSpace(command.Command));
     }
