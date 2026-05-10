@@ -8,6 +8,7 @@
     "RepoUrl": "https://github.com/devoreofox/Silkstring",
     "Tags": ["commands", "alias", "utility"],
     "DalamudApiLevel": 15,
+    "AssemblyVersion": "0.0.0.1",
     "Version": "0.0.0.1",
     "DownloadLinkInstall": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
     "DownloadLinkUpdate": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
