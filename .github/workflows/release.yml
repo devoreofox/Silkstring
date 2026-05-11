@@ -69,7 +69,8 @@ jobs:
           $json = Get-Content 'repo.json' | ConvertFrom-Json
           $json[0].AssemblyVersion = '${{ steps.version.outputs.VERSION }}'
           $json[0].Version = '${{ steps.version.outputs.VERSION }}'
-          $json | ConvertTo-Json | Set-Content 'repo.json'
+          $output = ConvertTo-Json @($json) -Depth 10
+          Set-Content 'repo.json' $output
       - name: Commit repo.json
         run: |
           git config user.name "github-actions[bot]"
