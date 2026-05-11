@@ -50,6 +50,10 @@ jobs:
           Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
       - name: Build
         run: dotnet build Silkstring/Silkstring.csproj --configuration Release -p:Version=${{ steps.version.outputs.VERSION }} -p:AssemblyVersion=${{ steps.version.outputs.VERSION }}
+      - name: List build output
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse 'Silkstring/bin' | Select-Object FullName
       - name: Create zip
         shell: pwsh
         run: |
