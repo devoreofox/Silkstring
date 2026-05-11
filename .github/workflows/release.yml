@@ -46,19 +46,23 @@ jobs:
       - name: Download Dalamud
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
-          Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile C:\dalamud.zip
+          Expand-Archive -Force C:\dalamud.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
       - name: Build
         run: dotnet build Silkstring/Silkstring.csproj --configuration Release -p:Version=${{ steps.version.outputs.VERSION }} -p:AssemblyVersion=${{ steps.version.outputs.VERSION }}
-      - name: List build output
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse 'Silkstring/bin' | Select-Object FullName
       - name: Create zip
         shell: pwsh
         run: |
-          $output = 'Silkstring/bin/x64/Release'
-          Compress-Archive -Path "$output/*" -DestinationPath 'Silkstring.zip'
+          $output = 'Silkstring/bin/Release'
+          $files = @(
+            "$output/Silkstring.dll",
+            "$output/Silkstring.json",
+            "$output/ECommons.dll",
+            "$output/Silkstring.deps.json",
+            "$output/images",
+            "$output/Silkstring"
+          )
+          Compress-Archive -Path $files -DestinationPath 'Silkstring.zip'
       - name: Update repo.json
         shell: pwsh
         run: |
