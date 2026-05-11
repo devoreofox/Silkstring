@@ -1,18 +1,20 @@
-[
-  {
-    "Author": "Oreo",
-    "Name": "Silkstring",
-    "InternalName": "Silkstring",
-    "Punchline": "Define custom command aliases that execute multiple commands in sequence.",
-    "Description": "Silkstring lets you create custom command aliases that expand into one or more chat commands, executed in order. Use /silkstring to open the settings window.",
-    "RepoUrl": "https://github.com/devoreofox/Silkstring",
-    "IconUrl": "https://raw.githubusercontent.com/devoreofox/Silkstring/main/Silkstring/images/icon.png",
-    "Tags": ["commands", "alias", "utility"],
-    "DalamudApiLevel": 15,
-    "AssemblyVersion": "0.0.0.2",
-    "Version": "0.0.0.2",
-    "DownloadLinkInstall": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
-    "DownloadLinkUpdate": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
-    "DownloadLinkTesting": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip"
-  }
-]
+{
+  "Author": "Oreo",
+  "Name": "Silkstring",
+  "InternalName": "Silkstring",
+  "Punchline": "Define custom command aliases that execute multiple commands in sequence.",
+  "Description": "Silkstring lets you create custom command aliases that expand into one or more chat commands, executed in order. Use /silkstring to open the settings window.",
+  "RepoUrl": "https://github.com/devoreofox/Silkstring",
+  "IconUrl": "https://raw.githubusercontent.com/devoreofox/Silkstring/main/Silkstring/images/icon.png",
+  "Tags": [
+    "commands",
+    "alias",
+    "utility"
+  ],
+  "DalamudApiLevel": 15,
+  "AssemblyVersion": "0.0.0.2",
+  "Version": "0.0.0.2",
+  "DownloadLinkInstall": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
+  "DownloadLinkUpdate": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
+  "DownloadLinkTesting": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip"
+}
