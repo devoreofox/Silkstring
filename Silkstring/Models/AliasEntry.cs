@@ -39,6 +39,7 @@ public class AliasEntry
     {
         return new AliasEntry
         {
+            DisplayName = DisplayName,
             Enabled = Enabled,
             Name = Name,
             Output = Output.Select(c => c.Clone()).ToList()
