@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -231,6 +232,12 @@ public class AliasSelectPanel
                 _configuration.Save();
             }
 
+            if (ImGui.MenuItem("Export to Clipboard"))
+            {
+                var json = JsonSerializer.Serialize(alias, new JsonSerializerOptions { IncludeFields = true });
+                ImGui.SetClipboardText(json);
+            }
+
             ImGui.EndPopup();
         }
 
@@ -281,7 +288,25 @@ public class AliasSelectPanel
         }
 
         ImGui.SameLine();
-        DrawIconButton(FontAwesomeIcon.FileImport, buttonSize, "Import from Clipboard (Coming Soon)", disabled: true);
+        if (DrawIconButton(FontAwesomeIcon.FileImport, buttonSize, "Import from Clipboard"))
+        {
+            try
+            {
+                var json = ImGui.GetClipboardText();
+                var imported = JsonSerializer.Deserialize<AliasEntry>(json, new JsonSerializerOptions { IncludeFields = true });
+                if (imported != null)
+                {
+                    imported.UniqueId = 0;
+                    _configuration.Aliases.Add(imported);
+                    _configuration.Save();
+                    _mainWindow.SelectedAlias = imported;
+                    _renamingAlias = imported;
+                    _renameAliasBuffer = imported.DisplayName;
+                    _focusRenameAlias = true;
+                }
+            }
+            catch {}
+        }
 
         ImGui.SameLine();
         DrawIconButton(FontAwesomeIcon.Clone, buttonSize, "Clone Alias (Coming Soon)", disabled: true);
