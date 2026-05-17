@@ -309,7 +309,21 @@ public class AliasSelectPanel
         }
 
         ImGui.SameLine();
-        DrawIconButton(FontAwesomeIcon.Clone, buttonSize, "Clone Alias (Coming Soon)", disabled: true);
+        if(DrawIconButton(FontAwesomeIcon.Clone, buttonSize, "Clone Alias", disabled: _mainWindow.SelectedAlias == null))
+        {
+            var source = _mainWindow.SelectedAlias!;
+            var cloned = source.Clone();
+            cloned.UniqueId = 0;
+
+            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Add(cloned);
+            else _configuration.Aliases.Add(cloned);
+
+            _configuration.Save();
+            _mainWindow.SelectedAlias = cloned;
+            _renamingAlias = cloned;
+            _renameAliasBuffer = cloned.DisplayName;
+            _focusRenameAlias = true;
+        }
 
         ImGui.SameLine();
         if (DrawIconButton(FontAwesomeIcon.FolderPlus, buttonSize, "New Folder"))
