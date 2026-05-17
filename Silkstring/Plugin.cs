@@ -55,7 +55,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         EditWindow = new EditWindow(this);
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, EditWindow, ConfigWindow);
+        MainWindow = new MainWindow(this, ToggleConfigUi);
 
         WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ConfigWindow);
@@ -110,10 +110,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
                 if (splitString.Length > 0)
                 {
                     var commandName = splitString[0][1..];
-                    var alias = Configuration.Aliases.FirstOrDefault(a =>
-                                                                         a.Enabled &&
-                                                                         a.IsValid() &&
-                                                                         a.Name.Split('|', StringSplitOptions.TrimEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
+                    var alias = Configuration.Aliases.Concat(
+                        Configuration.Folders.SelectMany(g => g.Aliases)).FirstOrDefault(a =>
+                            a.Enabled &&
+                            a.IsValid() &&
+                            a.Name.Split('|', StringSplitOptions.TrimEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
                     if (alias != null)
                     {
                         var commands = alias.Output

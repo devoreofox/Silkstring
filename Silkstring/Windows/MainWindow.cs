@@ -1,22 +1,34 @@
 ﻿using System;
-using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using System.Numerics;
+using Dalamud.Interface;
 using Silkstring.Models;
+using Silkstring.Ui;
 
 namespace Silkstring.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    private readonly Configuration configuration;
-    private readonly EditWindow editWindow;
-    private readonly ConfigWindow configWindow;
-    public MainWindow(Plugin plugin, EditWindow editWindow, ConfigWindow configWindow) : base("Silkstring Aliases###Main")
+    private readonly AliasSelectPanel _selectPanel;
+    private readonly AliasEditPanel   _editPanel;
+    private readonly Action _openSettings;
+
+    internal AliasEntry? SelectedAlias  { get; set; }
+    internal AliasFolder? SelectedFolder { get; set; }
+
+    public MainWindow(Plugin plugin, Action openSettings) : base("Silkstring###Main")
     {
-        configuration = plugin.Configuration;
-        this.editWindow = editWindow;
-        this.configWindow =  configWindow;
+        _openSettings = openSettings;
+        _selectPanel = new AliasSelectPanel(plugin.Configuration, this, openSettings);
+        _editPanel   = new AliasEditPanel(plugin.Configuration, this);
+
+        TitleBarButtons.Add(new TitleBarButton
+        {
+            Icon = FontAwesomeIcon.Cog,
+            Click = _ => openSettings(),
+            ShowTooltip = () => ImGui.SetTooltip("Settings")
+        });
     }
 
     public void Dispose() { }
@@ -25,95 +37,22 @@ public class MainWindow : Window, IDisposable
     {
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(400, 200),
+            MinimumSize = new Vector2(600, 300),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
     }
 
     public override void Draw()
     {
-        ImGui.Columns(4);
-        var size = ImGui.GetIO().FontGlobalScale;
-        ImGui.SetColumnWidth(0, 60 * size);
-        ImGui.SetColumnWidth(1, 200 * size);
-        ImGui.SetColumnWidth(2,  40 * size);
-        ImGui.SetColumnWidth(3,  55 * size);
+        var scale= ImGui.GetIO().FontGlobalScale;
+        var leftWidth = new Vector2(250 * scale, 0);
 
-        ImGui.Text("Enabled");
-        ImGui.NextColumn();
+        if (ImGui.BeginChild("###selector", leftWidth, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) _selectPanel.Draw();
+        ImGui.EndChild();
 
-        ImGui.Text("Command");
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Separate multiple aliases with | e.g. hello|hi|hey");
-        ImGui.NextColumn();
+        ImGui.SameLine();
 
-        ImGui.NextColumn();
-        ImGui.NextColumn();
-
-        foreach (var alias in configuration.Aliases)
-        {
-            if (alias.UniqueId == 0)
-            {
-                alias.UniqueId = configuration.Aliases.Max(a => a.UniqueId) + 1;
-            }
-
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - (16 * size));
-            if (ImGui.Checkbox($"###toggle{alias.UniqueId}", ref alias.Enabled))
-            {
-                configuration.Save();
-            }
-            ImGui.NextColumn();
-
-            ImGui.SetNextItemWidth(-1);
-            if (ImGui.InputText("###name" + alias.UniqueId, ref alias.Name, 100))
-            {
-                configuration.Save();
-            }
-            ImGui.NextColumn();
-
-            if (ImGui.Button("Edit###edit" + alias.UniqueId))
-            {
-                editWindow.Open(alias);
-            }
-            ImGui.NextColumn();
-
-            var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
-            ImGui.BeginDisabled(!canDelete);
-            if (ImGui.Button("Delete###delete" + alias.UniqueId)) alias.Delete = true;
-            ImGui.EndDisabled();
-            if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip("Hold Shift + Ctrl to delete");
-            ImGui.NextColumn();
-        }
-
-        ImGui.Columns(1);
-
-        if (configuration.Aliases.RemoveAll(a => a.Delete) > 0)
-        {
-            configuration.Save();
-        }
-
-        ImGui.Separator();
-        if (ImGui.Button("Add Alias"))
-        {
-            configuration.Aliases.Add(new AliasEntry());
-            configuration.Save();
-        }
-
-        var availableHeight = ImGui.GetContentRegionAvail().Y;
-        var buttonHeight = ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.Y + ImGui.GetStyle().WindowPadding.Y * 2 + 4;
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + availableHeight - buttonHeight);
-        ImGui.Separator();
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 25);
-        if (ImGui.Button("Settings"))
-        {
-            configWindow.Open();
-        }
-
-        var closeButtonWidth = ImGui.CalcTextSize("Close").X + ImGui.GetStyle().FramePadding.X * 2;
-        ImGui.SameLine(ImGui.GetWindowWidth() - closeButtonWidth - ImGui.GetStyle().ItemSpacing.X - ImGui.GetStyle().WindowPadding.X - 16);
-        if (ImGui.Button("Close"))
-        {
-            IsOpen = false;
-        }
+        if (ImGui.BeginChild("###editor", new Vector2(0, 0), true)) _editPanel.Draw();
+        ImGui.EndChild();
     }
 }
