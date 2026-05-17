@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.0.0.3
+
+### Added
+- Folder organization groups aliases into collapsible folders with drag and drop
+- Display names allow users to set a friendly label for each alias separate from the trigger command
+- Filter bar for quickly finding aliases by name
+- Export alias to clipboard via right-click context menu for easy sharing
+- Import alias from clipboard prompts for a display name on import
+- Clone alias duplicates the selected alias into the same folder
+- Settings gear in the title bar
+
+### Changed
+- UI completely redesigned as a split panel layout - selector on the left, editor on the right
+- `EditWindow` removed; editing now happens inline in the main window
+- Alphabetical sorting by display name, falling back to trigger name
+
+### Notes
+- Existing aliases are preserved on update
+- Shift + Ctrl is still required to delete an alias or command
+
 ## v0.0.0.2
 
 ### Added
