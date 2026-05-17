@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.0.3
+## v0.0.0.3 - 2026-05-16
 
 ### Added
 - Folder organization groups aliases into collapsible folders with drag and drop
@@ -20,7 +20,7 @@
 - Existing aliases are preserved on update
 - Shift + Ctrl is still required to delete an alias or command
 
-## v0.0.0.2
+## v0.0.0.2 - 2026-05-10
 
 ### Added
 - Multiple alias names via `|` separator (e.g. hello|hi|hey)
