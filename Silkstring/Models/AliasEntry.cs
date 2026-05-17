@@ -8,6 +8,7 @@ public class AliasEntry
 {
     public static readonly string[] Blacklist = ["silkstring", "xlplugins", "xlsettings", "xldclose", "xldev"];
 
+    public string DisplayName = string.Empty;
     public bool Enabled = true;
     public string Name = string.Empty;
     public List<CommandEntry> Output = new();
