@@ -69,6 +69,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
+        Framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
@@ -81,6 +82,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
+        Framework.Update -= OnFrameworkUpdate;
 
         processChatInputHook?.Disable();
         processChatInputHook?.Dispose();
@@ -96,6 +98,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private void OnCommand(string command, string args)
     {
         MainWindow.Toggle();
+    }
+
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        Configuration.TrySave(TimeSpan.FromMilliseconds(500));
     }
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();

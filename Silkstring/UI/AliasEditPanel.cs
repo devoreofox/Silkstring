@@ -54,7 +54,7 @@ public class AliasEditPanel
         if (ImGui.Checkbox($"###enabled{alias.UniqueId}", ref alias.Enabled)) _configuration.Save();
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
-        if(ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100)) _configuration.Save();
+        if(ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100)) _configuration.MarkDirty();
         if(ImGui.IsItemHovered()) ImGui.SetTooltip("Seperate multiple aliases with | e.g. mew|meow|mreow");
     }
 
@@ -89,7 +89,7 @@ public class AliasEditPanel
 
             if (alias.Output.Count > lines.Count) alias.Output.RemoveRange(lines.Count, alias.Output.Count - lines.Count);
 
-            _configuration.Save();
+            _configuration.MarkDirty();
         }
     }
 
@@ -116,7 +116,7 @@ public class AliasEditPanel
     private void DrawCommandRow(CommandEntry command)
     {
         ImGui.SetNextItemWidth(-60);
-        if (ImGui.InputText($"###cmd{command.UniqueId}", ref command.Command, 200)) _configuration.Save();
+        if (ImGui.InputText($"###cmd{command.UniqueId}", ref command.Command, 200)) _configuration.MarkDirty();
         ImGui.SameLine();
 
         var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
