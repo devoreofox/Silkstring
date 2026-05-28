@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Dalamud.Game.Command;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -41,6 +42,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     private Hook<ShellCommandModule.Delegates.ExecuteCommandInner> processChatInputHook;
 
+    private readonly CancellationTokenSource _cts = new();
+
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
@@ -71,6 +74,9 @@ public sealed unsafe class Plugin : IDalamudPlugin
     public void Dispose()
     {
         ECommonsMain.Dispose();
+
+        _cts.Cancel();
+        _cts.Dispose();
 
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
@@ -117,7 +123,10 @@ public sealed unsafe class Plugin : IDalamudPlugin
                                             .Where(c => !string.IsNullOrWhiteSpace(c.Command))
                                             .Select(c => "/" + c.Command.TrimStart('/'))
                                             .ToList();
-                        _ = CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay);
+
+
+                        CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay)
+                                      .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted);
                         return;
                     }
                 }
@@ -125,7 +134,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error(ex, "An error occured while processing command");
         }
         processChatInputHook.Original(shellCommandModule, message, uiModule);
     }
