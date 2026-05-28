@@ -10,16 +10,20 @@ namespace Silkstring.Windows;
 
 public class MainWindow : Window, IDisposable
 {
+    public event Action<AliasEntry?, AliasFolder?>? SelectionChanged;
+
     private readonly AliasSelectPanel _selectPanel;
     private readonly AliasEditPanel   _editPanel;
-    private readonly Action _openSettings;
 
-    internal AliasEntry? SelectedAlias  { get; set; }
-    internal AliasFolder? SelectedFolder { get; set; }
+    internal AliasEntry? _selectedAlias;
+    internal AliasFolder? _selectedFolder;
+
+    internal AliasEntry? SelectedAlias => _selectedAlias;
+    internal AliasFolder? SelectedFolder => _selectedFolder;
+
 
     public MainWindow(Plugin plugin, Action openSettings) : base("Silkstring###Main")
     {
-        _openSettings = openSettings;
         _selectPanel = new AliasSelectPanel(plugin.Configuration, this, openSettings);
         _editPanel   = new AliasEditPanel(plugin.Configuration, this);
 
@@ -54,5 +58,12 @@ public class MainWindow : Window, IDisposable
 
         if (ImGui.BeginChild("###editor", new Vector2(0, 0), true)) _editPanel.Draw();
         ImGui.EndChild();
+    }
+
+    public void SetSelection(AliasEntry? alias, AliasFolder? folder)
+    {
+        _selectedAlias = alias;
+        _selectedFolder = folder;
+        SelectionChanged?.Invoke(alias, folder);
     }
 }

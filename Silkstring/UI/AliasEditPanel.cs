@@ -4,7 +4,6 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
-using ECommons.ImGuiMethods;
 using Silkstring.Models;
 using Silkstring.Windows;
 
@@ -13,20 +12,21 @@ namespace Silkstring.Ui;
 public class AliasEditPanel
 {
     private readonly Configuration _configuration;
-    private readonly MainWindow _mainWindow;
+
+    private AliasEntry? _selectedAlias;
 
     private string _multilineBuffer = string.Empty;
     private int _multilineAliasId = -1;
 
     public  AliasEditPanel(Configuration configuration, MainWindow mainWindow)
     {
+        mainWindow.SelectionChanged += (alias, _) => _selectedAlias = alias;
         _configuration = configuration;
-        _mainWindow = mainWindow;
     }
 
     public void Draw()
     {
-        var alias = _mainWindow.SelectedAlias;
+        var alias = _selectedAlias;
 
         if (alias == null)
         {

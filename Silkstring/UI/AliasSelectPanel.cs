@@ -205,8 +205,7 @@ public class AliasSelectPanel
         var isSelected = _mainWindow.SelectedAlias == alias;
         if (ImGui.Selectable(label, isSelected))
         {
-            _mainWindow.SelectedAlias = alias;
-            _mainWindow.SelectedFolder = owningFolder;
+            _mainWindow.SetSelection(alias, owningFolder);
         }
 
         if (ImGui.BeginPopupContextItem($"###aliasContext{alias.UniqueId}"))
@@ -272,8 +271,7 @@ public class AliasSelectPanel
             var newAlias = new AliasEntry();
             _configuration.Aliases.Add(newAlias);
             _configuration.Save();
-            _mainWindow.SelectedAlias = newAlias;
-            _mainWindow.SelectedFolder = null;
+            _mainWindow.SetSelection(newAlias, null);
             _renamingAlias = newAlias;
             _renameAliasBuffer = string.Empty;
             _focusRenameAlias = true;
@@ -290,7 +288,7 @@ public class AliasSelectPanel
                 {
                     _configuration.Aliases.Add(imported);
                     _configuration.Save();
-                    _mainWindow.SelectedAlias = imported;
+                    _mainWindow.SetSelection(imported, null);
                     _renamingAlias = imported;
                     _renameAliasBuffer = imported.DisplayName;
                     _focusRenameAlias = true;
@@ -309,7 +307,7 @@ public class AliasSelectPanel
             else _configuration.Aliases.Add(cloned);
 
             _configuration.Save();
-            _mainWindow.SelectedAlias = cloned;
+            _mainWindow.SetSelection(cloned, _mainWindow.SelectedFolder);
             _renamingAlias = cloned;
             _renameAliasBuffer = cloned.DisplayName;
             _focusRenameAlias = true;
@@ -335,8 +333,7 @@ public class AliasSelectPanel
             if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Remove(_mainWindow.SelectedAlias!);
             else _configuration.Aliases.Remove(_mainWindow.SelectedAlias!);
 
-            _mainWindow.SelectedAlias = null;
-            _mainWindow.SelectedFolder = null;
+            _mainWindow.SetSelection(null, null);
             _configuration.Save();
         }
 
