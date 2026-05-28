@@ -99,7 +99,6 @@ public class AliasEditPanel
         ImGui.BeginChild("###commandList");
         foreach (var command in alias.Output)
         {
-            if (command.UniqueId == 0) command.UniqueId = alias.Output.Count == 0 ? 1 : alias.Output.Max(c => c.UniqueId) + 1;
             DrawCommandRow(command);
         }
 

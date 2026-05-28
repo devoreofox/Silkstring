@@ -14,7 +14,6 @@ public class AliasSelectPanel
 {
     private readonly Configuration _configuration;
     private readonly MainWindow _mainWindow;
-    private readonly Action _openSettings;
 
     private string _filter = string.Empty;
     private bool MatchesFilter(AliasEntry alias) => string.IsNullOrWhiteSpace(_filter) || alias.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase) || alias.DisplayName.Contains(_filter, StringComparison.OrdinalIgnoreCase);
@@ -39,7 +38,6 @@ public class AliasSelectPanel
     {
         _configuration = configuration;
         _mainWindow = mainWindow;
-        _openSettings = openSettings;
     }
 
     public void Draw()
@@ -181,12 +179,6 @@ public class AliasSelectPanel
 
     private void DrawAliasRow(AliasEntry alias, AliasFolder? owningFolder)
     {
-        if (alias.UniqueId == 0)
-        {
-            var allAliases = _configuration.Aliases.Concat(_configuration.Folders.SelectMany(f => f.Aliases));
-            alias.UniqueId = allAliases.Any() ? allAliases.Max(a => a.UniqueId) + 1 : 1;
-        }
-
         if (_renamingAlias == alias)
         {
             if (_focusRenameAlias)
@@ -296,7 +288,6 @@ public class AliasSelectPanel
                 var imported = JsonSerializer.Deserialize<AliasEntry>(json, new JsonSerializerOptions { IncludeFields = true });
                 if (imported != null)
                 {
-                    imported.UniqueId = 0;
                     _configuration.Aliases.Add(imported);
                     _configuration.Save();
                     _mainWindow.SelectedAlias = imported;
@@ -313,7 +304,6 @@ public class AliasSelectPanel
         {
             var source = _mainWindow.SelectedAlias!;
             var cloned = source.Clone();
-            cloned.UniqueId = 0;
 
             if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Add(cloned);
             else _configuration.Aliases.Add(cloned);

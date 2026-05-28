@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace Silkstring.Models;
 
 public class AliasEntry
 {
+    private static int _nextId = 0;
+
     public static readonly string[] Blacklist = ["silkstring", "xlplugins", "xlsettings", "xldclose", "xldev"];
 
     public string DisplayName = string.Empty;
@@ -17,7 +21,13 @@ public class AliasEntry
     public bool Delete;
 
     [NonSerialized]
+    [JsonIgnore]
     public int UniqueId;
+
+    public AliasEntry()
+    {
+        UniqueId = Interlocked.Increment(ref _nextId);
+    }
 
     public bool IsValid()
     {
