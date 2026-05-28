@@ -62,7 +62,7 @@ public class AliasEditPanel
     {
         if (_configuration.MultilineCommands)
         {
-            DrawMultlineView(alias);
+            DrawMultilineView(alias);
         }
         else
         {
@@ -70,7 +70,7 @@ public class AliasEditPanel
         }
     }
 
-    private void DrawMultlineView(AliasEntry alias)
+    private void DrawMultilineView(AliasEntry alias)
     {
         if (_multilineAliasId != alias.UniqueId)
         {

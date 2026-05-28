@@ -32,6 +32,9 @@ public sealed unsafe class Plugin : IDalamudPlugin
     [PluginService]
     internal static IFramework Framework { get; private set; } = null!;
 
+    [PluginService]
+    internal static INotificationManager NotificationManager { get; private set; } = null!;
+
     private const string CommandName = "/silkstring";
 
     public Configuration Configuration { get; init; }
@@ -128,7 +131,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
                     {
                         var commands = alias.Output
                                             .Where(c => !string.IsNullOrWhiteSpace(c.Command))
-                                            .Select(c => "/" + c.Command.TrimStart('/'))
+                                            .Select(c => "/" + c.Strip())
                                             .ToList();
 
 

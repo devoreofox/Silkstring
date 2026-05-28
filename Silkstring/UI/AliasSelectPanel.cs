@@ -5,6 +5,8 @@ using System.Text.Json;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
+using Serilog;
 using Silkstring.Models;
 using Silkstring.Windows;
 
@@ -283,7 +285,8 @@ public class AliasSelectPanel
             try
             {
                 var json = ImGui.GetClipboardText();
-                var imported = JsonSerializer.Deserialize<AliasEntry>(json, new JsonSerializerOptions { IncludeFields = true });
+                var imported =
+                    JsonSerializer.Deserialize<AliasEntry>(json, new JsonSerializerOptions { IncludeFields = true });
                 if (imported != null)
                 {
                     _configuration.Aliases.Add(imported);
@@ -294,7 +297,17 @@ public class AliasSelectPanel
                     _focusRenameAlias = true;
                 }
             }
-            catch {}
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to import alias from clipboard");
+                Plugin.NotificationManager.AddNotification(new Notification
+                {
+                    Title = "Import Failure",
+                    Content = "Could not import alias: Clipboard contents are not valid.",
+                    Type = NotificationType.Error
+                });
+
+            }
         }
 
         ImGui.SameLine();
