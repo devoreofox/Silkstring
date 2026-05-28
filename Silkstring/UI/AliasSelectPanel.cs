@@ -17,7 +17,7 @@ public class AliasSelectPanel
     private readonly Action _openSettings;
 
     private string _filter = string.Empty;
-    private bool MatchesFilter(AliasEntry alias) => string.IsNullOrWhiteSpace(_filter) || alias.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
+    private bool MatchesFilter(AliasEntry alias) => string.IsNullOrWhiteSpace(_filter) || alias.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase) || alias.DisplayName.Contains(_filter, StringComparison.OrdinalIgnoreCase);
 
     private AliasEntry? _draggedAlias;
     private AliasFolder? _draggedFromFolder;

@@ -96,16 +96,14 @@ public class AliasEditPanel
     private void DrawListView(AliasEntry alias)
     {
         ImGui.Text("Commands:");
-        if (ImGui.BeginChild("###commandList"))
+        ImGui.BeginChild("###commandList");
+        foreach (var command in alias.Output)
         {
-            foreach (var command in alias.Output)
-            {
-                if (command.UniqueId == 0) command.UniqueId = alias.Output.Count == 0 ? 1 : alias.Output.Max(c => c.UniqueId) + 1;
-                DrawCommandRow(command);
-            }
-
-            alias.Output.RemoveAll(c => c.Delete);
+            if (command.UniqueId == 0) command.UniqueId = alias.Output.Count == 0 ? 1 : alias.Output.Max(c => c.UniqueId) + 1;
+            DrawCommandRow(command);
         }
+
+        alias.Output.RemoveAll(c => c.Delete);
 
         if (ImGuiComponents.IconButton((int)FontAwesomeIcon.Plus, FontAwesomeIcon.Plus))
         {

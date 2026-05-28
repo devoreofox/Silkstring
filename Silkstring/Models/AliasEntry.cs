@@ -21,13 +21,12 @@ public class AliasEntry
 
     public bool IsValid()
     {
-        var names = Name.Split('|', StringSplitOptions.TrimEntries);
+        var names = Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (names.Length == 0) return false;
 
         foreach (var name in names)
         {
-            if (string.IsNullOrWhiteSpace(name)) return false;
-            if (Blacklist.Contains(name)) return false;
+            if (Blacklist.Contains(name, StringComparer.OrdinalIgnoreCase)) return false;
             if (name.Contains(' ')) return false;
             if (name.Contains('/')) return false;
         }
