@@ -36,7 +36,6 @@ public sealed unsafe class Plugin : IDalamudPlugin
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("Silkstring");
-    private EditWindow EditWindow { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
 
@@ -53,13 +52,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
             ProcessChatInputDetour);
         processChatInputHook.Enable();
 
-        EditWindow = new EditWindow(this);
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, ToggleConfigUi);
 
         WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ConfigWindow);
-        WindowSystem.AddWindow(EditWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -86,7 +83,6 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         MainWindow.Dispose();
         ConfigWindow.Dispose();
-        EditWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
     }
