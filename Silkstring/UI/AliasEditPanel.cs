@@ -18,7 +18,7 @@ public class AliasEditPanel
     private string _multilineBuffer = string.Empty;
     private int _multilineAliasId = -1;
 
-    public  AliasEditPanel(Configuration configuration, MainWindow mainWindow)
+    public AliasEditPanel(Configuration configuration, MainWindow mainWindow)
     {
         mainWindow.SelectionChanged += (alias, _) => _selectedAlias = alias;
         _configuration = configuration;
@@ -55,7 +55,7 @@ public class AliasEditPanel
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         if(ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100)) _configuration.MarkDirty();
-        if(ImGui.IsItemHovered()) ImGui.SetTooltip("Seperate multiple aliases with | e.g. mew|meow|mreow");
+        if(ImGui.IsItemHovered()) ImGui.SetTooltip("Separate multiple aliases with | e.g. mew|meow|mreow");
     }
 
     private void DrawCommandList(AliasEntry alias)
@@ -84,7 +84,7 @@ public class AliasEditPanel
             for (var i = 0; i < lines.Count; i++)
             {
                 if (i < alias.Output.Count) alias.Output[i].Command = lines[i];
-                else alias.Output.Add(new CommandEntry {  Command = lines[i] });
+                else alias.Output.Add(new CommandEntry { Command = lines[i] });
             }
 
             if (alias.Output.Count > lines.Count) alias.Output.RemoveRange(lines.Count, alias.Output.Count - lines.Count);

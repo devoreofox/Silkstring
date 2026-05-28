@@ -18,7 +18,6 @@ public class AliasSelectPanel
     private readonly MainWindow _mainWindow;
 
     private string _filter = string.Empty;
-    private bool MatchesFilter(AliasEntry alias) => string.IsNullOrWhiteSpace(_filter) || alias.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase) || alias.DisplayName.Contains(_filter, StringComparison.OrdinalIgnoreCase);
 
     private AliasEntry? _draggedAlias;
     private AliasFolder? _draggedFromFolder;
@@ -33,10 +32,11 @@ public class AliasSelectPanel
     private bool _focusRenameAlias = false;
 
     private const string DragDropType = "ALIAS";
+    private const int FooterButtonCount = 5;
 
     private static readonly Vector4 FolderColor = new(0.7f, 0.5f, 1.0f, 1.0f);
 
-    public AliasSelectPanel(Configuration configuration, MainWindow mainWindow, Action openSettings)
+    public AliasSelectPanel(Configuration configuration, MainWindow mainWindow)
     {
         _configuration = configuration;
         _mainWindow = mainWindow;
@@ -50,17 +50,15 @@ public class AliasSelectPanel
         var frameHeight = ImGui.GetFrameHeight();
         var listHeight = ImGui.GetContentRegionAvail().Y - frameHeight - ImGui.GetStyle().ItemSpacing.Y;
 
-        if (ImGui.BeginChild("###aliasList", new Vector2(0, listHeight)))
-        {
-            DrawFolders();
-            DrawUnsorted();
-        }
+        ImGui.BeginChild("###aliasList", new Vector2(0, listHeight));
+        DrawFolders();
+        DrawUnsorted();
         ImGui.EndChild();
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-
-        if (ImGui.BeginChild("###footer", new Vector2(-1, frameHeight))) DrawFooter();
+        ImGui.BeginChild("###footer", new Vector2(-1, frameHeight));
+        DrawFooter();
         ImGui.EndChild();
         ImGui.PopStyleVar(2);
     }
@@ -87,7 +85,7 @@ public class AliasSelectPanel
                 }
 
                 ImGui.SetNextItemWidth(-1);
-                ImGui.InputText($"###rename{folder.GetHashCode()}", ref _renameBuffer, 100);
+                ImGui.InputText($"###rename{folder.UniqueId}", ref _renameBuffer, 100);
 
                 if (ImGui.IsItemDeactivated())
                 {
@@ -107,12 +105,12 @@ public class AliasSelectPanel
             else
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, FolderColor);
-                open = ImGui.TreeNodeEx($"{folder.Name}###{folder.GetHashCode()}folder",
+                open = ImGui.TreeNodeEx($"{folder.Name}###{folder.UniqueId}folder",
                                         ImGuiTreeNodeFlags.SpanAvailWidth);
                 ImGui.PopStyleColor();
                 needsTreePop = open;
 
-                if (ImGui.BeginPopupContextItem($"###folderContext{folder.GetHashCode()}"))
+                if (ImGui.BeginPopupContextItem($"###folderContext{folder.UniqueId}"))
                 {
                     if (ImGui.MenuItem("Rename"))
                     {
@@ -262,8 +260,7 @@ public class AliasSelectPanel
     private void DrawFooter()
     {
         var available = ImGui.GetContentRegionAvail();
-        var buttonCount = 5;
-        var buttonSize = new Vector2(MathF.Floor(available.X / buttonCount), available.Y);
+        var buttonSize = new Vector2(MathF.Floor(available.X / FooterButtonCount), available.Y);
         var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
@@ -367,6 +364,13 @@ public class AliasSelectPanel
 
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip(tooltip);
         return clicked;
+    }
+
+    private bool MatchesFilter(AliasEntry alias)
+    {
+        if (string.IsNullOrWhiteSpace(_filter)) return true;
+        return alias.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase) ||
+               alias.DisplayName.Contains(_filter, StringComparison.OrdinalIgnoreCase);
     }
 
 }

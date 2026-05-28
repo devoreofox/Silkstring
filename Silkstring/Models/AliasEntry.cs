@@ -10,7 +10,10 @@ public class AliasEntry
 {
     private static int _nextId = 0;
 
-    public static readonly string[] Blacklist = ["silkstring", "xlplugins", "xlsettings", "xldclose", "xldev"];
+    public static readonly HashSet<string> Blacklist = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "silkstring", "xlplugins", "xlsettings", "xldclose", "xldev"
+    };
 
     public string DisplayName = string.Empty;
     public bool Enabled = true;
@@ -36,11 +39,11 @@ public class AliasEntry
 
         foreach (var name in names)
         {
-            if (Blacklist.Contains(name, StringComparer.OrdinalIgnoreCase)) return false;
+            if (Blacklist.Contains(name)) return false;
             if (name.Contains(' ')) return false;
             if (name.Contains('/')) return false;
         }
-        if (Output.Count  == 0) return false;
+        if (Output.Count == 0) return false;
         return !Output.Any(command => string.IsNullOrWhiteSpace(command.Command));
     }
 

@@ -11,7 +11,8 @@ public static class CommandHandler
     {
         for (var i = 0; i < commands.Count; i++)
         {
-            await Plugin.Framework.RunOnFrameworkThread(() => Chat.SendMessage(commands[i]));
+            var cmd = commands[i];
+            await Plugin.Framework.RunOnFrameworkThread(() => Chat.SendMessage(cmd));
             if (i < commands.Count - 1) await Task.Delay(delayMs, cancellationToken);
         }
     }

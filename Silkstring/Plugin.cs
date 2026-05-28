@@ -119,32 +119,29 @@ public sealed unsafe class Plugin : IDalamudPlugin
             if (inputString.StartsWith('/'))
             {
                 var splitString = inputString.Split(' ');
-                if (splitString.Length > 0)
+                var commandName = splitString[0][1..];
+                var alias = Configuration.Aliases.Concat(
+                    Configuration.Folders.SelectMany(g => g.Aliases)).FirstOrDefault(a =>
+                        a.Enabled &&
+                        a.IsValid() &&
+                        a.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
+                if (alias != null)
                 {
-                    var commandName = splitString[0][1..];
-                    var alias = Configuration.Aliases.Concat(
-                        Configuration.Folders.SelectMany(g => g.Aliases)).FirstOrDefault(a =>
-                            a.Enabled &&
-                            a.IsValid() &&
-                            a.Name.Split('|', StringSplitOptions.TrimEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
-                    if (alias != null)
-                    {
-                        var commands = alias.Output
-                                            .Where(c => !string.IsNullOrWhiteSpace(c.Command))
-                                            .Select(c => "/" + c.Strip())
-                                            .ToList();
+                    var commands = alias.Output
+                                        .Where(c => !string.IsNullOrWhiteSpace(c.Command))
+                                        .Select(c => "/" + c.Strip())
+                                        .ToList();
 
 
-                        CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay)
-                                      .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted);
-                        return;
-                    }
+                    CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay, _cts.Token)
+                                  .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted);
+                    return;
                 }
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "An error occured while processing command");
+            Log.Error(ex, "An error occurred while processing command");
         }
         processChatInputHook.Original(shellCommandModule, message, uiModule);
     }

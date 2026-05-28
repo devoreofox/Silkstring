@@ -32,7 +32,6 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SetNextItemWidth(150);
         if (ImGui.InputInt("###delayInput", ref delay, 10, 100))
         {
-            delay = Math.Clamp(delay, 0, 1000);
             configuration.CommandDelay = delay;
             configuration.MarkDirty();
         }
@@ -65,10 +64,5 @@ public class ConfigWindow : Window, IDisposable
         {
             IsOpen = false;
         }
-    }
-
-    public void Open()
-    {
-        IsOpen = true;
     }
 }
