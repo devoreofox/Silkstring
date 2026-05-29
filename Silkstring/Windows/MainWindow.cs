@@ -10,17 +10,21 @@ namespace Silkstring.Windows;
 
 public class MainWindow : Window, IDisposable
 {
+    public event Action<AliasEntry?, AliasFolder?>? SelectionChanged;
+
     private readonly AliasSelectPanel _selectPanel;
     private readonly AliasEditPanel   _editPanel;
-    private readonly Action _openSettings;
 
-    internal AliasEntry? SelectedAlias  { get; set; }
-    internal AliasFolder? SelectedFolder { get; set; }
+    private AliasEntry? _selectedAlias;
+    private AliasFolder? _selectedFolder;
+
+    internal AliasEntry? SelectedAlias => _selectedAlias;
+    internal AliasFolder? SelectedFolder => _selectedFolder;
+
 
     public MainWindow(Plugin plugin, Action openSettings) : base("Silkstring###Main")
     {
-        _openSettings = openSettings;
-        _selectPanel = new AliasSelectPanel(plugin.Configuration, this, openSettings);
+        _selectPanel = new AliasSelectPanel(plugin.Configuration, this);
         _editPanel   = new AliasEditPanel(plugin.Configuration, this);
 
         TitleBarButtons.Add(new TitleBarButton
@@ -44,15 +48,25 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-        var scale= ImGui.GetIO().FontGlobalScale;
+        var scale = ImGui.GetIO().FontGlobalScale;
         var leftWidth = new Vector2(250 * scale, 0);
 
-        if (ImGui.BeginChild("###selector", leftWidth, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) _selectPanel.Draw();
+        ImGui.BeginChild("###selector", leftWidth, true,
+                         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+        _selectPanel.Draw();
         ImGui.EndChild();
 
         ImGui.SameLine();
 
-        if (ImGui.BeginChild("###editor", new Vector2(0, 0), true)) _editPanel.Draw();
+        ImGui.BeginChild("###editor", new Vector2(0, 0), true);
+        _editPanel.Draw();
         ImGui.EndChild();
+    }
+
+    public void SetSelection(AliasEntry? alias, AliasFolder? folder)
+    {
+        _selectedAlias = alias;
+        _selectedFolder = folder;
+        SelectionChanged?.Invoke(alias, folder);
     }
 }

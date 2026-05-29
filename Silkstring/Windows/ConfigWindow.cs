@@ -32,16 +32,15 @@ public class ConfigWindow : Window, IDisposable
         ImGui.SetNextItemWidth(150);
         if (ImGui.InputInt("###delayInput", ref delay, 10, 100))
         {
-            delay = Math.Clamp(delay, 0, 1000);
             configuration.CommandDelay = delay;
-            configuration.Save();
+            configuration.MarkDirty();
         }
         ImGui.SameLine();
         ImGui.SetNextItemWidth(200);
         if (ImGui.SliderInt("###delaySlider", ref delay, 0, 1000))
         {
             configuration.CommandDelay = delay;
-            configuration.Save();
+            configuration.MarkDirty();
         }
 
         var multiline = configuration.MultilineCommands;
@@ -65,10 +64,5 @@ public class ConfigWindow : Window, IDisposable
         {
             IsOpen = false;
         }
-    }
-
-    public void Open()
-    {
-        IsOpen = true;
     }
 }

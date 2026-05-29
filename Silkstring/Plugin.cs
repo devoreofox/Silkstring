@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Dalamud.Game.Command;
 using Dalamud.Hooking;
 using Dalamud.IoC;
@@ -31,16 +32,20 @@ public sealed unsafe class Plugin : IDalamudPlugin
     [PluginService]
     internal static IFramework Framework { get; private set; } = null!;
 
+    [PluginService]
+    internal static INotificationManager NotificationManager { get; private set; } = null!;
+
     private const string CommandName = "/silkstring";
 
     public Configuration Configuration { get; init; }
 
     public readonly WindowSystem WindowSystem = new("Silkstring");
-    private EditWindow EditWindow { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
 
     private Hook<ShellCommandModule.Delegates.ExecuteCommandInner> processChatInputHook;
+
+    private readonly CancellationTokenSource _cts = new();
 
     public Plugin()
     {
@@ -53,13 +58,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
             ProcessChatInputDetour);
         processChatInputHook.Enable();
 
-        EditWindow = new EditWindow(this);
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, ToggleConfigUi);
 
         WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ConfigWindow);
-        WindowSystem.AddWindow(EditWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -69,15 +72,20 @@ public sealed unsafe class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
+        Framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
     {
         ECommonsMain.Dispose();
 
+        _cts.Cancel();
+        _cts.Dispose();
+
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUi;
+        Framework.Update -= OnFrameworkUpdate;
 
         processChatInputHook?.Disable();
         processChatInputHook?.Dispose();
@@ -86,7 +94,6 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         MainWindow.Dispose();
         ConfigWindow.Dispose();
-        EditWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
     }
@@ -94,6 +101,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private void OnCommand(string command, string args)
     {
         MainWindow.Toggle();
+    }
+
+    private void OnFrameworkUpdate(IFramework framework)
+    {
+        Configuration.TrySave(TimeSpan.FromMilliseconds(500));
     }
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
@@ -107,29 +119,29 @@ public sealed unsafe class Plugin : IDalamudPlugin
             if (inputString.StartsWith('/'))
             {
                 var splitString = inputString.Split(' ');
-                if (splitString.Length > 0)
+                var commandName = splitString[0][1..];
+                var alias = Configuration.Aliases.Concat(
+                    Configuration.Folders.SelectMany(g => g.Aliases)).FirstOrDefault(a =>
+                        a.Enabled &&
+                        a.IsValid() &&
+                        a.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
+                if (alias != null)
                 {
-                    var commandName = splitString[0][1..];
-                    var alias = Configuration.Aliases.Concat(
-                        Configuration.Folders.SelectMany(g => g.Aliases)).FirstOrDefault(a =>
-                            a.Enabled &&
-                            a.IsValid() &&
-                            a.Name.Split('|', StringSplitOptions.TrimEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
-                    if (alias != null)
-                    {
-                        var commands = alias.Output
-                                            .Where(c => !string.IsNullOrWhiteSpace(c.Command))
-                                            .Select(c => "/" + c.Command.TrimStart('/'))
-                                            .ToList();
-                        _ = CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay);
-                        return;
-                    }
+                    var commands = alias.Output
+                                        .Where(c => !string.IsNullOrWhiteSpace(c.Command))
+                                        .Select(c => "/" + c.Strip())
+                                        .ToList();
+
+
+                    CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay, _cts.Token)
+                                  .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted);
+                    return;
                 }
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error(ex, "An error occurred while processing command");
         }
         processChatInputHook.Original(shellCommandModule, message, uiModule);
     }

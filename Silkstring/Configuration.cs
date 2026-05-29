@@ -8,14 +8,40 @@ namespace Silkstring;
 [Serializable]
 public class Configuration : IPluginConfiguration
 {
+    [NonSerialized]
+    private bool _isDirty = false;
+    [NonSerialized]
+    private DateTime _lastDirty = DateTime.MinValue;
+
+    private int _commandDelay = 100;
+    public int CommandDelay
+    {
+        get => _commandDelay;
+        set => _commandDelay = Math.Clamp(value, 0, 1000);
+    }
+
     public int Version { get; set; } = 1;
     public List<AliasFolder> Folders = new();
     public List<AliasEntry> Aliases = new();
-    public int CommandDelay { get; set; } = 100;
-    public bool MultilineCommands { get; set; } = false;
+    public bool MultilineCommands { get; set; }
 
     public void Save()
     {
         Plugin.PluginInterface.SavePluginConfig(this);
+    }
+
+    public void MarkDirty()
+    {
+        _isDirty = true;
+        _lastDirty = DateTime.UtcNow;
+    }
+
+    public void TrySave(TimeSpan debounce)
+    {
+        if (_isDirty && DateTime.UtcNow - _lastDirty > debounce)
+        {
+            Save();
+            _isDirty = false;
+        }
     }
 }
