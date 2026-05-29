@@ -51,7 +51,9 @@ public class AliasEditPanel
 
     private void DrawAliasHeader(AliasEntry alias)
     {
+        var tooltipText = alias.Enabled ? "Disable this alias" : "Enable this alias";
         if (ImGui.Checkbox($"###enabled{alias.UniqueId}", ref alias.Enabled)) _configuration.Save();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltipText);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100)) _configuration.MarkDirty();
