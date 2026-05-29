@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Dalamud.Game.Command;
@@ -46,6 +47,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private Hook<ShellCommandModule.Delegates.ExecuteCommandInner> processChatInputHook;
 
     private readonly CancellationTokenSource _cts = new();
+    private readonly HashSet<string> _executingAliases = new(StringComparer.OrdinalIgnoreCase);
 
     public Plugin()
     {
@@ -120,8 +122,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
             {
                 var splitString = inputString.Split(' ');
                 var commandName = splitString[0][1..];
-                var alias = Configuration.Aliases.Concat(
-                    Configuration.Folders.SelectMany(g => g.Aliases)).FirstOrDefault(a =>
+                var alias = Configuration.GetAliases().FirstOrDefault(a =>
                         a.Enabled &&
                         a.IsValid() &&
                         a.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
@@ -131,10 +132,17 @@ public sealed unsafe class Plugin : IDalamudPlugin
                                         .Where(c => !string.IsNullOrWhiteSpace(c.Command))
                                         .Select(c => "/" + c.Strip())
                                         .ToList();
+                    var names = alias.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var name in names) _executingAliases.Add(name);
 
+                    bool ShouldSkip(string cmd) => _executingAliases.Contains(cmd);
 
-                    CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay, _cts.Token)
-                                  .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted);
+                    CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay, _cts.Token, shouldSkip: ShouldSkip)
+                                  .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted)
+                                  .ContinueWith(_ => Framework.RunOnFrameworkThread(() =>
+                                  {
+                                      foreach (var name in names) _executingAliases.Remove(name);
+                                  }));
                     return;
                 }
             }

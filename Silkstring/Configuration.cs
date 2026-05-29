@@ -1,6 +1,7 @@
 ﻿using Dalamud.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Silkstring.Models;
 
 namespace Silkstring;
@@ -43,5 +44,10 @@ public class Configuration : IPluginConfiguration
             Save();
             _isDirty = false;
         }
+    }
+
+    public IEnumerable<AliasEntry> GetAliases()
+    {
+        return Aliases.Concat(Folders.SelectMany(f => f.Aliases));
     }
 }
