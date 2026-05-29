@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 
@@ -9,6 +10,7 @@ namespace Silkstring.Models;
 public class AliasEntry
 {
     private static int _nextId = 0;
+    public static readonly JsonSerializerOptions SerializerOptions = new() { IncludeFields = true };
 
     public static readonly HashSet<string> Blacklist = new(StringComparer.OrdinalIgnoreCase)
     {

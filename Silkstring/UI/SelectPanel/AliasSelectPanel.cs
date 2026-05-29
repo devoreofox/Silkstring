@@ -3,10 +3,6 @@ using System.Linq;
 using System.Numerics;
 using System.Text.Json;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
-using Dalamud.Interface.Components;
-using Dalamud.Interface.ImGuiNotification;
-using Serilog;
 using Silkstring.Models;
 using Silkstring.Windows;
 
@@ -16,6 +12,7 @@ public class AliasSelectPanel
 {
     private readonly Configuration _configuration;
     private readonly MainWindow _mainWindow;
+    private readonly SelectPanelFooter _footer;
 
     private string _filter = string.Empty;
 
@@ -32,7 +29,6 @@ public class AliasSelectPanel
     private bool _focusRenameAlias = false;
 
     private const string DragDropType = "ALIAS";
-    private const int FooterButtonCount = 5;
 
     private static readonly Vector4 FolderColor = new(0.7f, 0.5f, 1.0f, 1.0f);
 
@@ -40,6 +36,7 @@ public class AliasSelectPanel
     {
         _configuration = configuration;
         _mainWindow = mainWindow;
+        _footer = new SelectPanelFooter(configuration, mainWindow, BeginRenameAlias, BeginRenameFolder);
     }
 
     public void Draw()
@@ -58,7 +55,7 @@ public class AliasSelectPanel
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.BeginChild("###footer", new Vector2(-1, frameHeight));
-        DrawFooter();
+        _footer.Draw();
         ImGui.EndChild();
         ImGui.PopStyleVar(2);
     }
@@ -67,7 +64,7 @@ public class AliasSelectPanel
     {
         foreach (var folder in _configuration.Folders.ToList())
         {
-            var filtered = folder.Aliases.Where(a => MatchesFilter(a))
+            var filtered = folder.Aliases.Where(MatchesFilter)
                                  .OrderBy(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.Name : a.DisplayName)
                                  .ToList();
 
@@ -112,13 +109,7 @@ public class AliasSelectPanel
 
                 if (ImGui.BeginPopupContextItem($"###folderContext{folder.UniqueId}"))
                 {
-                    if (ImGui.MenuItem("Rename"))
-                    {
-                        _renamingFolder = folder;
-                        _renameBuffer = folder.Name;
-                        _preRenameName = folder.Name;
-                        _focusRename = true;
-                    }
+                    if (ImGui.MenuItem("Rename")) BeginRenameFolder(folder);
 
                     if (ImGui.MenuItem("Delete"))
                     {
@@ -157,7 +148,7 @@ public class AliasSelectPanel
 
     private void DrawUnsorted()
     {
-        var filtered = _configuration.Aliases.Where(a => MatchesFilter(a)).OrderBy(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.Name : a.DisplayName).ToList();
+        var filtered = _configuration.Aliases.Where(MatchesFilter).OrderBy(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.Name : a.DisplayName).ToList();
 
         foreach (var alias in filtered)
         {
@@ -212,9 +203,7 @@ public class AliasSelectPanel
         {
             if (ImGui.MenuItem("Rename"))
             {
-                _renamingAlias = alias;
-                _renameAliasBuffer = alias.DisplayName;
-                _focusRenameAlias = true;
+                BeginRenameAlias(alias);
             }
 
             if (!string.IsNullOrWhiteSpace(alias.DisplayName) && ImGui.MenuItem("Clear Display Name"))
@@ -225,7 +214,7 @@ public class AliasSelectPanel
 
             if (ImGui.MenuItem("Export to Clipboard"))
             {
-                var json = JsonSerializer.Serialize(alias, new JsonSerializerOptions { IncludeFields = true });
+                var json = JsonSerializer.Serialize(alias, AliasEntry.SerializerOptions);
                 ImGui.SetClipboardText(json);
             }
 
@@ -257,115 +246,20 @@ public class AliasSelectPanel
         _draggedFromFolder = null;
     }
 
-    private void DrawFooter()
+    private void BeginRenameAlias(AliasEntry alias)
     {
-        var available = ImGui.GetContentRegionAvail();
-        var buttonSize = new Vector2(MathF.Floor(available.X / FooterButtonCount), available.Y);
-        var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
-
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
-        if (DrawIconButton(FontAwesomeIcon.Plus, buttonSize, "New Alias"))
-        {
-            var newAlias = new AliasEntry();
-            _configuration.Aliases.Add(newAlias);
-            _configuration.Save();
-            _mainWindow.SetSelection(newAlias, null);
-            _renamingAlias = newAlias;
-            _renameAliasBuffer = string.Empty;
-            _focusRenameAlias = true;
-        }
-
-        ImGui.SameLine();
-        if (DrawIconButton(FontAwesomeIcon.FileImport, buttonSize, "Import from Clipboard"))
-        {
-            try
-            {
-                var json = ImGui.GetClipboardText();
-                var imported =
-                    JsonSerializer.Deserialize<AliasEntry>(json, new JsonSerializerOptions { IncludeFields = true });
-                if (imported != null)
-                {
-                    _configuration.Aliases.Add(imported);
-                    _configuration.Save();
-                    _mainWindow.SetSelection(imported, null);
-                    _renamingAlias = imported;
-                    _renameAliasBuffer = imported.DisplayName;
-                    _focusRenameAlias = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to import alias from clipboard");
-                Plugin.NotificationManager.AddNotification(new Notification
-                {
-                    Title = "Import Failure",
-                    Content = "Could not import alias: Clipboard contents are not valid.",
-                    Type = NotificationType.Error
-                });
-
-            }
-        }
-
-        ImGui.SameLine();
-        if(DrawIconButton(FontAwesomeIcon.Clone, buttonSize, "Clone Alias", disabled: _mainWindow.SelectedAlias == null))
-        {
-            var source = _mainWindow.SelectedAlias!;
-            var cloned = source.Clone();
-
-            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Add(cloned);
-            else _configuration.Aliases.Add(cloned);
-
-            _configuration.Save();
-            _mainWindow.SetSelection(cloned, _mainWindow.SelectedFolder);
-            _renamingAlias = cloned;
-            _renameAliasBuffer = cloned.DisplayName;
-            _focusRenameAlias = true;
-        }
-
-        ImGui.SameLine();
-        if (DrawIconButton(FontAwesomeIcon.FolderPlus, buttonSize, "New Folder"))
-        {
-            var newFolder = new AliasFolder { Name = "New Folder" };
-            _configuration.Folders.Add(newFolder);
-            _configuration.Save();
-            _renamingFolder = newFolder;
-            _renameBuffer = string.Empty;
-            _preRenameName = string.Empty;
-            _focusRename = true;
-        }
-
-        ImGui.SameLine();
-        if (DrawIconButton(FontAwesomeIcon.Trash, buttonSize,
-                           canDelete ? "Delete Selected" : "Hold Shift + Ctrl to delete",
-                           disabled: !canDelete || _mainWindow.SelectedAlias == null))
-        {
-            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Remove(_mainWindow.SelectedAlias!);
-            else _configuration.Aliases.Remove(_mainWindow.SelectedAlias!);
-
-            _mainWindow.SetSelection(null, null);
-            _configuration.Save();
-        }
-
-        ImGui.PopStyleVar();
+        _renamingAlias = alias;
+        _renameAliasBuffer = alias.DisplayName;
+        _focusRenameAlias = true;
     }
 
-    private bool DrawIconButton(FontAwesomeIcon icon, Vector2 size, string tooltip, bool disabled = false)
+    private void BeginRenameFolder(AliasFolder folder, bool isNew = false)
     {
-        var framePadding = ImGui.GetStyle().FramePadding;
-        var pX = Math.Max(0, (size.X - ImGui.GetFrameHeight()) / 2f + framePadding.X);
-
-        if (disabled) ImGui.BeginDisabled();
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(pX, framePadding.Y));
-        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0f);
-        var clicked = ImGuiComponents.IconButton((int)icon, icon);
-        ImGui.PopStyleVar(2);
-        if (disabled) ImGui.EndDisabled();
-
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip(tooltip);
-        return clicked;
+        _renamingFolder = folder;
+        _renameBuffer = isNew ? string.Empty : folder.Name;
+        _preRenameName = isNew ? string.Empty : folder.Name;
+        _focusRename = true;
     }
-
     private bool MatchesFilter(AliasEntry alias)
     {
         if (string.IsNullOrWhiteSpace(_filter)) return true;
