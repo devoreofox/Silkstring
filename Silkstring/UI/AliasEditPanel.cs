@@ -54,8 +54,8 @@ public class AliasEditPanel
         if (ImGui.Checkbox($"###enabled{alias.UniqueId}", ref alias.Enabled)) _configuration.Save();
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
-        if(ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100)) _configuration.MarkDirty();
-        if(ImGui.IsItemHovered()) ImGui.SetTooltip("Separate multiple aliases with | e.g. mew|meow|mreow");
+        if (ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100)) _configuration.MarkDirty();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Separate multiple aliases with | e.g. mew|meow|mreow");
     }
 
     private void DrawCommandList(AliasEntry alias)
@@ -80,7 +80,7 @@ public class AliasEditPanel
 
         if (ImGui.InputTextMultiline($"###multiline{alias.UniqueId}", ref _multilineBuffer, 5000, new Vector2(-1, ImGui.GetContentRegionAvail().Y)))
         {
-            var lines = _multilineBuffer.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim()).ToList();
+            var lines = _multilineBuffer.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
             for (var i = 0; i < lines.Count; i++)
             {
                 if (i < alias.Output.Count) alias.Output[i].Command = lines[i];
