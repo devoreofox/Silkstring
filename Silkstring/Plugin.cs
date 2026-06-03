@@ -54,7 +54,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         processChatInputHook.Enable();
 
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, ToggleConfigUi);
+        MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi);
         HelpWindow = new HelpWindow();
 
         WindowSystem.AddWindow(MainWindow);
@@ -63,7 +63,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "use /silkstring to configure your aliases"
+            HelpMessage = "/silkstring → Open the Silkstring alias manager.\n/silkstring help → Open the Silkstring help window."
         });
 
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
