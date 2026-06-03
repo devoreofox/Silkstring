@@ -35,6 +35,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
     public readonly WindowSystem WindowSystem = new("Silkstring");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
+    private HelpWindow HelpWindow { get; init; }
 
     private Hook<ShellCommandModule.Delegates.ExecuteCommandInner> processChatInputHook;
 
@@ -54,9 +55,11 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, ToggleConfigUi);
+        HelpWindow = new HelpWindow();
 
         WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ConfigWindow);
+        WindowSystem.AddWindow(HelpWindow);
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -88,13 +91,18 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         MainWindow.Dispose();
         ConfigWindow.Dispose();
+        HelpWindow.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
     }
 
     private void OnCommand(string command, string args)
     {
-        MainWindow.Toggle();
+        if (args.Equals("help", StringComparison.OrdinalIgnoreCase))
+        {
+            ToggleHelpUi();
+        }
+        else MainWindow.Toggle();
     }
 
     private void OnFrameworkUpdate(IFramework framework)
@@ -104,6 +112,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
     public void ToggleMainUi() => MainWindow.Toggle();
+    public void ToggleHelpUi() => HelpWindow.Toggle();
 
     private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
     {
