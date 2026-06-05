@@ -103,7 +103,7 @@ public class HelpWindow : Window, IDisposable
                           "but are defined without one in Silkstring.");
         ImGui.Spacing();
         ImGui.BulletText("Triggers cannot contain spaces.");
-        ImGui.BulletText("Triggers cannot conflict with built-in FFXIV or Dalamud commands.");
+        ImGui.BulletText("Triggers should not conflict with built-in FFXIV or Dalamud commands.");
         ImGui.Spacing();
         ImGui.TextColored(HeadingColor, "Multiple Triggers");
         ImGui.Spacing();
