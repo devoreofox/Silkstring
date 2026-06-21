@@ -14,6 +14,7 @@ public static class CommandHandler
         for (var i = 0; i < commands.Count; i++)
         {
             var cmd = commands[i];
+            cmd = CommandResolver.Resolve(cmd);
             if (shouldSkip != null)
             {
                 var parts = cmd.TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);
