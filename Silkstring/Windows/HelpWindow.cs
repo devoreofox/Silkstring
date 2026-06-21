@@ -18,10 +18,12 @@ public class HelpWindow : Window, IDisposable
 
     private static readonly Vector4 HeadingColor = new(0.7f, 0.5f, 1.0f, 1.0f);
     private string _testerInput = string.Empty;
+    private readonly CommandResolver _resolver;
 
 
-    public HelpWindow() : base("Silkstring Help###help")
+    public HelpWindow(CommandResolver resolver) : base("Silkstring Help###help")
     {
+        _resolver = resolver;
     }
 
     public void Dispose() { }
@@ -74,7 +76,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.InputTextWithHint("###testerInput", "Enter a command e.g. /say Hello {character}!", ref _testerInput, 200);
         ImGui.Spacing();
 
-        var resolved = string.IsNullOrWhiteSpace(_testerInput) ? string.Empty : CommandResolver.Resolve(_testerInput);
+        var resolved = string.IsNullOrWhiteSpace(_testerInput) ? string.Empty : _resolver.Resolve(_testerInput);
 
         ImGui.Text("Resolved:");
         ImGui.SameLine();

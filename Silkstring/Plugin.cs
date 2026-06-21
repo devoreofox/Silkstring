@@ -42,11 +42,17 @@ public sealed unsafe class Plugin : IDalamudPlugin
     private readonly CancellationTokenSource _cts = new();
     private readonly HashSet<string> _executingAliases = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly CommandResolver _commandResolver;
+    private readonly CommandHandler _commandHandler;
+
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
         ECommonsMain.Init(PluginInterface, this);
+
+        _commandResolver = new CommandResolver(PlayerState);
+        _commandHandler = new CommandHandler(_commandResolver, Framework);
 
         processChatInputHook = GameInteropProvider.HookFromAddress<ShellCommandModule.Delegates.ExecuteCommandInner>(
             ShellCommandModule.MemberFunctionPointers.ExecuteCommandInner,
@@ -55,7 +61,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi);
-        HelpWindow = new HelpWindow();
+        HelpWindow = new HelpWindow(_commandResolver);
 
         WindowSystem.AddWindow(MainWindow);
         WindowSystem.AddWindow(ConfigWindow);
@@ -138,7 +144,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
                     bool ShouldSkip(string cmd) => _executingAliases.Contains(cmd);
 
-                    CommandHandler.ExecuteAsync(commands, Configuration.CommandDelay, _cts.Token, shouldSkip: ShouldSkip)
+                    _commandHandler.ExecuteAsync(commands, Configuration.CommandDelay, _cts.Token, shouldSkip: ShouldSkip)
                                   .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"), TaskContinuationOptions.OnlyOnFaulted)
                                   .ContinueWith(_ => Framework.RunOnFrameworkThread(() =>
                                   {
