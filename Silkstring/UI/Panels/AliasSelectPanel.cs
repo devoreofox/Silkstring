@@ -19,14 +19,8 @@ public class AliasSelectPanel
     private AliasEntry? _draggedAlias;
     private AliasFolder? _draggedFromFolder;
 
-    private AliasFolder? _renamingFolder;
-    private string _renameBuffer = string.Empty;
-    private string _preRenameName = string.Empty;
-    private bool _focusRename = false;
-
-    private AliasEntry? _renamingAlias;
-    private string _renameAliasBuffer = string.Empty;
-    private bool _focusRenameAlias = false;
+    private readonly InlineRename<AliasFolder> _folderRename = new();
+    private readonly InlineRename<AliasEntry> _aliasRename = new();
 
     private const string DragDropType = "ALIAS";
 
@@ -73,27 +67,21 @@ public class AliasSelectPanel
             bool open;
             bool needsTreePop = false;
 
-            if (_renamingFolder == folder)
+            if (_folderRename.IsRenaming(folder))
             {
-                if (_focusRename)
+                if (_folderRename.Draw($"###rename{folder.UniqueId}", out var newName))
                 {
-                    ImGui.SetKeyboardFocusHere();
-                    _focusRename = false;
-                }
+                    var isDuplicate = _configuration.Folders.Any(f => f != folder && f.Name.Equals(newName,  StringComparison.InvariantCultureIgnoreCase));
 
-                ImGui.SetNextItemWidth(-1);
-                ImGui.InputText($"###rename{folder.UniqueId}", ref _renameBuffer, 100);
-
-                if (ImGui.IsItemDeactivated())
-                {
-                    var isDuplicate = _configuration.Folders.Any(f => f != folder && f.Name.Equals(_renameBuffer, StringComparison.OrdinalIgnoreCase));
-
-                    if (string.IsNullOrWhiteSpace(_renameBuffer) || isDuplicate)
+                    if (string.IsNullOrWhiteSpace(newName) || isDuplicate)
                     {
-                        if (string.IsNullOrWhiteSpace(_preRenameName)) _configuration.Folders.Remove(folder);
+                        if (string.IsNullOrWhiteSpace(folder.Name)) _configuration.Folders.Remove(folder);
                     }
-                    else folder.Name = _renameBuffer;
-                    _renamingFolder = null;
+                    else
+                    {
+                        folder.Name = newName;
+                    }
+
                     _configuration.Save();
                 }
 
@@ -170,21 +158,11 @@ public class AliasSelectPanel
 
     private void DrawAliasRow(AliasEntry alias, AliasFolder? owningFolder)
     {
-        if (_renamingAlias == alias)
+        if (_aliasRename.IsRenaming(alias))
         {
-            if (_focusRenameAlias)
+            if (_aliasRename.Draw($"###renameAlias{alias.UniqueId}", out var newName))
             {
-                ImGui.SetKeyboardFocusHere();
-                _focusRenameAlias = false;
-            }
-
-            ImGui.SetNextItemWidth(-1);
-            ImGui.InputText($"###renameAlias{alias.UniqueId}", ref _renameAliasBuffer, 100);
-
-            if (ImGui.IsItemDeactivated())
-            {
-                alias.DisplayName = _renameAliasBuffer.Trim();
-                _renamingAlias = null;
+                alias.DisplayName = newName.Trim();
                 _configuration.Save();
             }
 
@@ -246,20 +224,9 @@ public class AliasSelectPanel
         _draggedFromFolder = null;
     }
 
-    private void BeginRenameAlias(AliasEntry alias)
-    {
-        _renamingAlias = alias;
-        _renameAliasBuffer = alias.DisplayName;
-        _focusRenameAlias = true;
-    }
+    private void BeginRenameAlias(AliasEntry alias) => _aliasRename.Begin(alias, alias.DisplayName);
 
-    private void BeginRenameFolder(AliasFolder folder, bool isNew = false)
-    {
-        _renamingFolder = folder;
-        _renameBuffer = isNew ? string.Empty : folder.Name;
-        _preRenameName = isNew ? string.Empty : folder.Name;
-        _focusRename = true;
-    }
+    private void BeginRenameFolder(AliasFolder folder) => _folderRename.Begin(folder, folder.Name);
     private bool MatchesFilter(AliasEntry alias)
     {
         if (string.IsNullOrWhiteSpace(_filter)) return true;

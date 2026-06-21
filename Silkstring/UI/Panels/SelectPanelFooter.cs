@@ -18,11 +18,11 @@ public class SelectPanelFooter
     private readonly Configuration _configuration;
     private readonly MainWindow _mainWindow;
     private readonly Action<AliasEntry> _beginRenameAlias;
-    private readonly Action<AliasFolder, bool> _beginRenameFolder;
+    private readonly Action<AliasFolder> _beginRenameFolder;
 
     public SelectPanelFooter(
         Configuration configuration, MainWindow mainWindow, Action<AliasEntry> beginRenameAlias,
-        Action<AliasFolder, bool> beginRenameFolder)
+        Action<AliasFolder> beginRenameFolder)
     {
         _configuration = configuration;
         _mainWindow = mainWindow;
@@ -92,10 +92,10 @@ public class SelectPanelFooter
         ImGui.SameLine();
         if (DrawIconButton(FontAwesomeIcon.FolderPlus, buttonSize, "New Folder"))
         {
-            var newFolder = new AliasFolder { Name = "New Folder" };
+            var newFolder = new AliasFolder();
             _configuration.Folders.Add(newFolder);
             _configuration.Save();
-            _beginRenameFolder(newFolder, true);
+            _beginRenameFolder(newFolder);
         }
 
         ImGui.SameLine();
