@@ -9,7 +9,7 @@ using Silkstring.Models;
 using Silkstring.Services;
 using Silkstring.Windows;
 
-namespace Silkstring.Ui;
+namespace Silkstring.UI.Panels;
 
 public class AliasEditPanel
 {

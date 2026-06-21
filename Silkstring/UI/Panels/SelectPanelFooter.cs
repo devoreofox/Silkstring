@@ -9,7 +9,7 @@ using Serilog;
 using Silkstring.Models;
 using Silkstring.Windows;
 
-namespace Silkstring.Ui;
+namespace Silkstring.UI.Panels;
 
 public class SelectPanelFooter
 {
