@@ -61,7 +61,7 @@ public class AliasEditPanel
     {
         var tooltipText = alias.Enabled ? "Disable this alias" : "Enable this alias";
         if (ImGui.Checkbox($"###enabled{alias.UniqueId}", ref alias.Enabled)) _configuration.Save();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltipText);
+        ImGuiUtil.Tooltip(tooltipText);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100))
@@ -72,7 +72,7 @@ public class AliasEditPanel
         var inputTooltip = _detectedCycle is { Count: > 0 }
                                ? $"Cycle detected: {string.Join(" → ", _detectedCycle)}"
                                : "Separate multiple aliases with | e.g. mew|meow|mreow";
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(inputTooltip);
+        ImGuiUtil.Tooltip(inputTooltip);
     }
 
     private void DrawCommandList(AliasEntry alias)
@@ -127,7 +127,7 @@ public class AliasEditPanel
             alias.Output.Add(new CommandEntry());
             _configuration.Save();
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Add Command");
+        ImGuiUtil.Tooltip("Add Command");
         ImGui.EndChild();
     }
 
@@ -145,7 +145,7 @@ public class AliasEditPanel
         ImGui.BeginDisabled(!canDelete);
         if (ImGuiComponents.IconButton(command.UniqueId, FontAwesomeIcon.Trash)) command.Delete = true;
         ImGui.EndDisabled();
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip("Hold Shift + Ctrl to delete");
+        ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
     }
 
     private void RefreshCycleCheck()
