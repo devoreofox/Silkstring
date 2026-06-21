@@ -89,23 +89,11 @@ public class AliasEditPanel
 
     private void DrawMultilineView(AliasEntry alias)
     {
-        if (_multilineAliasId != alias.UniqueId)
-        {
-            _multilineBuffer = string.Join("\n", alias.Output.Select(c => c.Command));
-            _multilineAliasId = alias.UniqueId;
-        }
+        SyncMultilineBuffer(alias);
 
         if (ImGui.InputTextMultiline($"###multiline{alias.UniqueId}", ref _multilineBuffer, 5000, new Vector2(-1, ImGui.GetContentRegionAvail().Y)))
         {
-            var lines = _multilineBuffer.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-            for (var i = 0; i < lines.Count; i++)
-            {
-                if (i < alias.Output.Count) alias.Output[i].Command = lines[i];
-                else alias.Output.Add(new CommandEntry { Command = lines[i] });
-            }
-
-            if (alias.Output.Count > lines.Count) alias.Output.RemoveRange(lines.Count, alias.Output.Count - lines.Count);
-
+            ApplyMultiline(alias, _multilineBuffer);
             _configuration.MarkDirty();
             RefreshCycleCheck();
         }
@@ -152,5 +140,25 @@ public class AliasEditPanel
     {
         if (_selectedAlias == null) return;
         _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
+    }
+
+    private void SyncMultilineBuffer(AliasEntry alias)
+    {
+        if (_multilineAliasId == alias.UniqueId) return;
+        _multilineBuffer = string.Join("\n", alias.Output.Select(c => c.Command));
+        _multilineAliasId = alias.UniqueId;
+    }
+
+    private static void ApplyMultiline(AliasEntry alias, string text)
+    {
+        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (i < alias.Output.Count) alias.Output[i].Command = lines[i];
+            else alias.Output.Add(new CommandEntry { Command = lines[i] });
+        }
+
+        if (alias.Output.Count > lines.Length)  alias.Output.RemoveRange(lines.Length, alias.Output.Count - lines.Length);
     }
 }
