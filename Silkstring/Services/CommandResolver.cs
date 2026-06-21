@@ -1,26 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Dalamud.Plugin.Services;
 using Serilog;
 
 namespace Silkstring.Services;
 
-public static class CommandResolver
+public class CommandResolver
 {
-    private static Dictionary<string, string> BuildVariables()
+    private readonly IPlayerState _playerState;
+
+    public CommandResolver(IPlayerState playerState)
+    {
+        _playerState = playerState;
+    }
+    private Dictionary<string, string> BuildVariables()
     {
         var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        variables.Add("job", Plugin.PlayerState.ClassJob.Value.Abbreviation.ToString());
-        variables.Add("level",  Plugin.PlayerState.Level.ToString());
-        variables.Add("character", Plugin.PlayerState.CharacterName);
-        variables.Add("world", Plugin.PlayerState.CurrentWorld.Value.Name.ToString());
+        variables.Add("job", _playerState.ClassJob.Value.Abbreviation.ToString());
+        variables.Add("level",  _playerState.Level.ToString());
+        variables.Add("character", _playerState.CharacterName);
+        variables.Add("world", _playerState.CurrentWorld.Value.Name.ToString());
 
         return variables;
     }
-    public static string Resolve(string command)
+
+    public string Resolve(string command)
     {
-        if (!Plugin.PlayerState.IsLoaded) return command;
+        if (!_playerState.IsLoaded) return command;
         try
         {
             var variables = BuildVariables();

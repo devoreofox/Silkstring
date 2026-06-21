@@ -18,8 +18,9 @@ public class AliasEntry
     };
 
     public string DisplayName = string.Empty;
-    public bool Enabled = true;
     public string Name = string.Empty;
+    public string EffectiveName => string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
+    public bool Enabled = true;
     public List<CommandEntry> Output = new();
 
     [NonSerialized]

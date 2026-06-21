@@ -4,7 +4,7 @@ using Dalamud.Interface.Windowing;
 using System.Numerics;
 using Dalamud.Interface;
 using Silkstring.Models;
-using Silkstring.Ui;
+using Silkstring.UI.Panels;
 
 namespace Silkstring.Windows;
 

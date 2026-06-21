@@ -9,7 +9,7 @@ using Silkstring.Models;
 using Silkstring.Services;
 using Silkstring.Windows;
 
-namespace Silkstring.Ui;
+namespace Silkstring.UI.Panels;
 
 public class AliasEditPanel
 {
@@ -61,7 +61,7 @@ public class AliasEditPanel
     {
         var tooltipText = alias.Enabled ? "Disable this alias" : "Enable this alias";
         if (ImGui.Checkbox($"###enabled{alias.UniqueId}", ref alias.Enabled)) _configuration.Save();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltipText);
+        ImGuiUtil.Tooltip(tooltipText);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100))
@@ -72,7 +72,7 @@ public class AliasEditPanel
         var inputTooltip = _detectedCycle is { Count: > 0 }
                                ? $"Cycle detected: {string.Join(" → ", _detectedCycle)}"
                                : "Separate multiple aliases with | e.g. mew|meow|mreow";
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(inputTooltip);
+        ImGuiUtil.Tooltip(inputTooltip);
     }
 
     private void DrawCommandList(AliasEntry alias)
@@ -89,23 +89,11 @@ public class AliasEditPanel
 
     private void DrawMultilineView(AliasEntry alias)
     {
-        if (_multilineAliasId != alias.UniqueId)
-        {
-            _multilineBuffer = string.Join("\n", alias.Output.Select(c => c.Command));
-            _multilineAliasId = alias.UniqueId;
-        }
+        SyncMultilineBuffer(alias);
 
         if (ImGui.InputTextMultiline($"###multiline{alias.UniqueId}", ref _multilineBuffer, 5000, new Vector2(-1, ImGui.GetContentRegionAvail().Y)))
         {
-            var lines = _multilineBuffer.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
-            for (var i = 0; i < lines.Count; i++)
-            {
-                if (i < alias.Output.Count) alias.Output[i].Command = lines[i];
-                else alias.Output.Add(new CommandEntry { Command = lines[i] });
-            }
-
-            if (alias.Output.Count > lines.Count) alias.Output.RemoveRange(lines.Count, alias.Output.Count - lines.Count);
-
+            ApplyMultiline(alias, _multilineBuffer);
             _configuration.MarkDirty();
             RefreshCycleCheck();
         }
@@ -127,7 +115,7 @@ public class AliasEditPanel
             alias.Output.Add(new CommandEntry());
             _configuration.Save();
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Add Command");
+        ImGuiUtil.Tooltip("Add Command");
         ImGui.EndChild();
     }
 
@@ -145,12 +133,32 @@ public class AliasEditPanel
         ImGui.BeginDisabled(!canDelete);
         if (ImGuiComponents.IconButton(command.UniqueId, FontAwesomeIcon.Trash)) command.Delete = true;
         ImGui.EndDisabled();
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip("Hold Shift + Ctrl to delete");
+        ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
     }
 
     private void RefreshCycleCheck()
     {
         if (_selectedAlias == null) return;
         _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
+    }
+
+    private void SyncMultilineBuffer(AliasEntry alias)
+    {
+        if (_multilineAliasId == alias.UniqueId) return;
+        _multilineBuffer = string.Join("\n", alias.Output.Select(c => c.Command));
+        _multilineAliasId = alias.UniqueId;
+    }
+
+    private static void ApplyMultiline(AliasEntry alias, string text)
+    {
+        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (i < alias.Output.Count) alias.Output[i].Command = lines[i];
+            else alias.Output.Add(new CommandEntry { Command = lines[i] });
+        }
+
+        if (alias.Output.Count > lines.Length)  alias.Output.RemoveRange(lines.Length, alias.Output.Count - lines.Length);
     }
 }
