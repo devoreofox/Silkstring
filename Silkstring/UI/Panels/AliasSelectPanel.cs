@@ -65,7 +65,7 @@ public class AliasSelectPanel
         foreach (var folder in _configuration.Folders.ToList())
         {
             var filtered = folder.Aliases.Where(MatchesFilter)
-                                 .OrderBy(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.Name : a.DisplayName)
+                                 .OrderBy(a =>a.EffectiveName)
                                  .ToList();
 
             if (!string.IsNullOrEmpty(_filter) && filtered.Count == 0) continue;
@@ -148,7 +148,7 @@ public class AliasSelectPanel
 
     private void DrawUnsorted()
     {
-        var filtered = _configuration.Aliases.Where(MatchesFilter).OrderBy(a => string.IsNullOrWhiteSpace(a.DisplayName) ? a.Name : a.DisplayName).ToList();
+        var filtered = _configuration.Aliases.Where(MatchesFilter).OrderBy(a => a.EffectiveName).ToList();
 
         foreach (var alias in filtered)
         {
@@ -191,7 +191,7 @@ public class AliasSelectPanel
             return;
         }
 
-        var displayName = string.IsNullOrWhiteSpace(alias.DisplayName) ? alias.Name : alias.DisplayName;
+        var displayName = alias.EffectiveName;
         var label = owningFolder == null ? $"  {displayName}###{alias.UniqueId}" : $"{displayName}###{alias.UniqueId}";
         var isSelected = _mainWindow.SelectedAlias == alias;
         if (ImGui.Selectable(label, isSelected))
