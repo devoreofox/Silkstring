@@ -59,7 +59,7 @@ public class AliasSelectPanel
         foreach (var folder in _configuration.Folders.ToList())
         {
             var filtered = folder.Aliases.Where(MatchesFilter)
-                                 .OrderBy(a =>a.EffectiveName)
+                                 .OrderBy(a => a.EffectiveName)
                                  .ToList();
 
             if (!string.IsNullOrEmpty(_filter) && filtered.Count == 0) continue;
@@ -71,16 +71,13 @@ public class AliasSelectPanel
             {
                 if (_folderRename.Draw($"###rename{folder.UniqueId}", out var newName))
                 {
-                    var isDuplicate = _configuration.Folders.Any(f => f != folder && f.Name.Equals(newName,  StringComparison.InvariantCultureIgnoreCase));
+                    var isDuplicate = _configuration.Folders.Any(f => f != folder && f.Name.Equals(newName,  StringComparison.OrdinalIgnoreCase));
 
                     if (string.IsNullOrWhiteSpace(newName) || isDuplicate)
                     {
                         if (string.IsNullOrWhiteSpace(folder.Name)) _configuration.Folders.Remove(folder);
                     }
-                    else
-                    {
-                        folder.Name = newName;
-                    }
+                    else folder.Name = newName;
 
                     _configuration.Save();
                 }
@@ -98,37 +95,16 @@ public class AliasSelectPanel
                 if (ImGui.BeginPopupContextItem($"###folderContext{folder.UniqueId}"))
                 {
                     if (ImGui.MenuItem("Rename")) BeginRenameFolder(folder);
-
-                    if (ImGui.MenuItem("Delete"))
-                    {
-                        foreach (var alias in folder.Aliases)
-                        {
-                            _configuration.Aliases.Add(alias);
-                        }
-
-                        _configuration.Folders.Remove(folder);
-                        _configuration.Save();
-                    }
-
+                    if (ImGui.MenuItem("Delete")) DeleteFolder(folder);
                     ImGui.EndPopup();
                 }
             }
 
-            if (ImGui.BeginDragDropTarget())
-            {
-                var payload = ImGui.AcceptDragDropPayload(DragDropType);
-                if (!payload.IsNull && payload.IsDelivery() && _draggedAlias != null)
-                    MoveAlias(_draggedAlias, _draggedFromFolder, toFolder: folder);
-                ImGui.EndDragDropTarget();
-            }
+            DrawDropTarget(folder);
 
             if (open)
             {
-                foreach (var alias in filtered)
-                {
-                    DrawAliasRow(alias, owningFolder: folder);
-                }
-
+                foreach (var alias in filtered) DrawAliasRow(alias, owningFolder: folder);
                 if (needsTreePop) ImGui.TreePop();
             }
         }
@@ -138,21 +114,13 @@ public class AliasSelectPanel
     {
         var filtered = _configuration.Aliases.Where(MatchesFilter).OrderBy(a => a.EffectiveName).ToList();
 
-        foreach (var alias in filtered)
-        {
-            DrawAliasRow(alias, owningFolder: null);
-        }
+        foreach (var alias in filtered) DrawAliasRow(alias, owningFolder: null);
 
         var remaining = ImGui.GetContentRegionAvail();
         if (remaining.Y > 0)
         {
             ImGui.InvisibleButton("###dropTarget", new Vector2(-1, remaining.Y));
-            if (ImGui.BeginDragDropTarget())
-            {
-                var payload = ImGui.AcceptDragDropPayload(DragDropType);
-                if (!payload.IsNull && payload.IsDelivery() && _draggedAlias != null) MoveAlias(_draggedAlias, _draggedFromFolder, toFolder: null);
-                ImGui.EndDragDropTarget();
-            }
+            DrawDropTarget(null);
         }
     }
 
@@ -165,37 +133,19 @@ public class AliasSelectPanel
                 alias.DisplayName = newName.Trim();
                 _configuration.Save();
             }
-
             return;
         }
 
         var displayName = alias.EffectiveName;
         var label = owningFolder == null ? $"  {displayName}###{alias.UniqueId}" : $"{displayName}###{alias.UniqueId}";
         var isSelected = _mainWindow.SelectedAlias == alias;
-        if (ImGui.Selectable(label, isSelected))
-        {
-            _mainWindow.SetSelection(alias, owningFolder);
-        }
+        if (ImGui.Selectable(label, isSelected)) _mainWindow.SetSelection(alias, owningFolder);
 
         if (ImGui.BeginPopupContextItem($"###aliasContext{alias.UniqueId}"))
         {
-            if (ImGui.MenuItem("Rename"))
-            {
-                BeginRenameAlias(alias);
-            }
-
-            if (!string.IsNullOrWhiteSpace(alias.DisplayName) && ImGui.MenuItem("Clear Display Name"))
-            {
-                alias.DisplayName = string.Empty;
-                _configuration.Save();
-            }
-
-            if (ImGui.MenuItem("Export to Clipboard"))
-            {
-                var json = JsonSerializer.Serialize(alias, AliasEntry.SerializerOptions);
-                ImGui.SetClipboardText(json);
-            }
-
+            if (ImGui.MenuItem("Rename")) BeginRenameAlias(alias);
+            if (!string.IsNullOrWhiteSpace(alias.DisplayName) && ImGui.MenuItem("Clear Display Name")) ClearDisplayName(alias);
+            if (ImGui.MenuItem("Export to Clipboard")) ExportAlias(alias);
             ImGui.EndPopup();
         }
 
@@ -207,6 +157,14 @@ public class AliasSelectPanel
             ImGui.Text($"Moving {displayName}...");
             ImGui.EndDragDropSource();
         }
+    }
+
+    private void DrawDropTarget(AliasFolder? target)
+    {
+        if (!ImGui.BeginDragDropTarget()) return;
+        var payload = ImGui.AcceptDragDropPayload(DragDropType);
+        if (!payload.IsNull && payload.IsDelivery() && _draggedAlias != null) MoveAlias(_draggedAlias, _draggedFromFolder, target);
+        ImGui.EndDragDropTarget();
     }
 
     private void MoveAlias(AliasEntry alias, AliasFolder? from, AliasFolder? toFolder)
@@ -224,9 +182,29 @@ public class AliasSelectPanel
         _draggedFromFolder = null;
     }
 
+    private static void ExportAlias(AliasEntry alias)
+    {
+        var json = JsonSerializer.Serialize(alias, AliasEntry.SerializerOptions);
+        ImGui.SetClipboardText(json);
+    }
+
+    private void ClearDisplayName(AliasEntry alias)
+    {
+        alias.DisplayName = string.Empty;
+        _configuration.Save();
+    }
+
     private void BeginRenameAlias(AliasEntry alias) => _aliasRename.Begin(alias, alias.DisplayName);
 
     private void BeginRenameFolder(AliasFolder folder) => _folderRename.Begin(folder, folder.Name);
+
+    private void DeleteFolder(AliasFolder folder)
+    {
+        _configuration.Aliases.AddRange(folder.Aliases);
+        _configuration.Folders.Remove(folder);
+        _configuration.Save();
+    }
+
     private bool MatchesFilter(AliasEntry alias)
     {
         if (string.IsNullOrWhiteSpace(_filter)) return true;
