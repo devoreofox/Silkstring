@@ -84,7 +84,7 @@ Variables let you insert live game values into a line using curly brace syntax. 
 /say I am {character}, a level {level} {job} from {world}!
 ```
 
-Currently supported variables: `{character}`, `{job}`, `{level}`, `{world}`. The Variables tab of the help window lists them with their current values, and the command tester at the top of the help window shows resolved output as you type.
+Currently supported variables: `{character}`, `{homeworld}`, `{job}`, `{level}`, `{world}`. The Variables tab of the help window lists them with their current values, and the command tester at the top of the help window shows resolved output as you type.
 
 ### Folders
 
