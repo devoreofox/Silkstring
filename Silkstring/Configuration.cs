@@ -21,7 +21,8 @@ public class Configuration : IPluginConfiguration
         set => _commandDelay = Math.Clamp(value, 0, 1000);
     }
 
-    public int Version { get; set; } = 1;
+    public const int CurrentVersion = 2;
+    public int Version { get; set; } = CurrentVersion;
     public List<AliasFolder> Folders = new();
     public List<AliasEntry> Aliases = new();
     public bool MultilineCommands { get; set; }

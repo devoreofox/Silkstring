@@ -8,18 +8,17 @@ namespace Silkstring.Services;
 
 public static class ConfigMigrator
 {
-    public const int CurrentVersion = 2;
     public sealed record MigrationResult(IReadOnlyList<string> Messages, string? BackupPath);
 
     public static MigrationResult? Migrate(Configuration config, IDalamudPluginInterface pi)
     {
-        if (config.Version >= CurrentVersion) return null;
+        if (config.Version >= Configuration.CurrentVersion) return null;
 
         var backupPath = Backup(pi, config.Version);
 
         var messages = new List<string>();
         if (config.Version < 2) messages.Add(MigrateToV2(config));
-        config.Version = CurrentVersion;
+        config.Version = Configuration.CurrentVersion;
         config.Save();
 
         return new MigrationResult(messages, backupPath);
