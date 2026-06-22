@@ -35,7 +35,7 @@ public static class AliasValidator
             var text = command.Command.TrimStart();
             if (!text.StartsWith('/')) continue;
 
-            var trimmed = command.Command.TrimStart('/');
+            var trimmed = text.TrimStart('/');
             if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
             var commandName = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
