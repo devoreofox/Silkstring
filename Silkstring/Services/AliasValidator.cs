@@ -32,8 +32,12 @@ public static class AliasValidator
     {
         foreach (var command in alias.Output)
         {
+            var text = command.Command.TrimStart();
+            if (!text.StartsWith('/')) continue;
+
             var trimmed = command.Command.TrimStart('/');
             if (string.IsNullOrWhiteSpace(trimmed)) continue;
+
             var commandName = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
             if (lookup.TryGetValue(commandName, out var dependency)) yield return dependency;
         }
