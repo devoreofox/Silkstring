@@ -121,7 +121,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextColored(HeadingColor, "Commands");
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("Commands are the actions Silkstring executes when your alias is triggered. Each command should be a valid FFXIV chat command including the leading slash.");
+        ImGui.TextWrapped("Commands are the actions Silkstring runs when your alias is triggered. Each command must start with a slash, exactly as you would type it into the chat box.");
         ImGui.Spacing();
         ImGui.BulletText("Commands execute in order from top to bottom.");
         ImGui.BulletText("A configurable delay is applied between each command.");
@@ -131,6 +131,20 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextDisabled("/say Hello!");
         ImGui.TextDisabled("/emote waves");
         ImGui.TextDisabled("/party Ready!");
+        ImGui.Unindent();
+        ImGui.Spacing();
+
+        ImGui.TextColored(HeadingColor, "Chat Messages");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Any line that does not start with a slash is sent as a chat message to whatever channel you currently have active.");
+        ImGui.Spacing();
+        ImGui.BulletText("Lines starting with / run as game commands.");
+        ImGui.BulletText("Lines without / are sent to your current chat channel (say, party, FC, etc.).");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled("/bow");
+        ImGui.TextDisabled("good game, everyone!");
         ImGui.Unindent();
         ImGui.Spacing();
 
