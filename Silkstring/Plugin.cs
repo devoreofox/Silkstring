@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using Dalamud.Game.Command;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
@@ -35,6 +37,20 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+        var migration = ConfigMigrator.Migrate(Configuration, PluginInterface);
+        if (migration != null)
+        {
+            var content = string.Join("\n", migration.Messages);
+            if (migration.BackupPath != null) content += $"\nA backup was saved as {Path.GetFileName(migration.BackupPath)}.";
+
+            NotificationManager.AddNotification(new Notification
+            {
+                Title = "Silkstring Updated",
+                Content = content,
+                Type = NotificationType.Success
+            });
+        }
 
         ECommonsMain.Init(PluginInterface, this);
 
