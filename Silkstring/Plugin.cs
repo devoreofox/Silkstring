@@ -8,6 +8,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using ECommons;
 using Silkstring.Services;
+using Silkstring.Services.Variables;
 using Silkstring.Windows;
 
 namespace Silkstring;
@@ -54,7 +55,9 @@ public sealed class Plugin : IDalamudPlugin
 
         ECommonsMain.Init(PluginInterface, this);
 
-        _commandResolver = new CommandResolver(PlayerState);
+        IVariableProvider[] providers = [new PlayerVariableProvider(PlayerState)];
+
+        _commandResolver = new CommandResolver(providers);
         _commandHandler = new CommandHandler(_commandResolver, Framework);
         _chatInterceptor = new ChatInterceptor(GameInteropProvider, Framework, Configuration, _commandHandler);
 

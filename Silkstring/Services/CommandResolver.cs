@@ -1,42 +1,33 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Dalamud.Plugin.Services;
 using Serilog;
+using Silkstring.Services.Variables;
 
 namespace Silkstring.Services;
 
 public class CommandResolver
 {
-    private readonly IPlayerState _playerState;
+    private readonly Dictionary<string, VariableDescriptor> _variables;
 
-    public CommandResolver(IPlayerState playerState)
+    public CommandResolver(IEnumerable<IVariableProvider> providers)
     {
-        _playerState = playerState;
+        _variables = providers.SelectMany(p => p.GetVariables()).ToDictionary(v => v.Name, StringComparer.OrdinalIgnoreCase);
     }
-    private Dictionary<string, string> BuildVariables()
-    {
-        var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        variables.Add("job", _playerState.ClassJob.Value.Abbreviation.ToString());
-        variables.Add("level",  _playerState.Level.ToString());
-        variables.Add("character", _playerState.CharacterName);
-        variables.Add("world", _playerState.CurrentWorld.Value.Name.ToString());
-
-        return variables;
-    }
+    public IReadOnlyCollection<VariableDescriptor> Variables => _variables.Values;
 
     public string Resolve(string command)
     {
-        if (!_playerState.IsLoaded) return command;
         try
         {
-            var variables = BuildVariables();
-
             return Regex.Replace(command, @"\{(\w+)\}", match =>
             {
                 var token = match.Groups[1].Value;
-                return variables.TryGetValue(token, out var value) ? value : match.Value;
+                if (!_variables.TryGetValue(token, out var descriptor)) return match.Value;
+                return descriptor.Resolve() ?? match.Value;
             }, RegexOptions.IgnoreCase);
         }
         catch (Exception ex)
