@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
@@ -198,15 +199,13 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextDisabled("/say I am {character} playing as {job} on {world}!");
         ImGui.Unindent();
         ImGui.Spacing();
-        ImGui.TextWrapped("If a variable cannot be resolved, for example if you are not logged in-" +
+        ImGui.TextWrapped("If a variable cannot be resolved, for example if you are not logged in " +
                           "it is left as-is in the command string rather than being replaced with an empty value.");
         ImGui.Spacing();
 
         ImGui.TextColored(HeadingColor, "Available Variables");
         ImGui.Separator();
         ImGui.Spacing();
-
-        var isLoaded = Plugin.PlayerState.IsLoaded;
 
         if (ImGui.BeginTable("###variablesTable", 3, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.RowBg))
         {
@@ -215,10 +214,10 @@ public class HelpWindow : Window, IDisposable
             ImGui.TableSetupColumn("Current Value", ImGuiTableColumnFlags.WidthFixed, 150);
             ImGui.TableHeadersRow();
 
-            DrawVariableRow("{character}", "Your character's name", isLoaded ? Plugin.PlayerState.CharacterName : "Not logged in");
-            DrawVariableRow("{job}", "Current job abbreviation", isLoaded ? Plugin.PlayerState.ClassJob.Value.Abbreviation.ToString() : "Not logged in");
-            DrawVariableRow("{level}", "Current character level", isLoaded ? Plugin.PlayerState.Level.ToString() : "Not logged in");
-            DrawVariableRow("{world}", "Your current world", isLoaded ? Plugin.PlayerState.CurrentWorld.Value.Name.ToString() : "Not logged in");
+            foreach (var variable in _resolver.Variables.OrderBy(v => v.Category).ThenBy(v => v.Name))
+            {
+                DrawVariableRow($"{{{variable.Name}}}", variable.Description, variable.Resolve() ?? "Not available");
+            }
 
             ImGui.EndTable();
         }

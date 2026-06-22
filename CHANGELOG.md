@@ -1,12 +1,13 @@
 # Changelog
 
-## v0.0.0.4 - TBD
+## v1.0.0 - TBD
 ### Added
 - Static cycle detection via a new `AliasValidator` service that performs a depth-first graph traversal across all aliases at authoring time and surfaces the full cycle chain (e.g. `mew → meow → mew`) as a live tooltip on the alias name input in the edit panel
 - Runtime recursion guard in `CommandHandler`: a `shouldSkip` predicate checks before each command whether it would trigger an alias currently mid-execution, skipping and logging a warning if so
 - `Configuration.GetAliases()` helper that lazily flattens top-level and folder aliases into a single `IEnumerable<AliasEntry>`, replacing duplicated `Concat`/`SelectMany` calls throughout the codebase
 - New `CommandResolver` service as the central pre-execution processing pipeline; currently handles variable resolution, with parameters and conditionals planned for future releases. `Resolve` is called in `CommandHandler.ExecuteAsync` before the cycle guard
-- Variable substitution using curly brace syntax (e.g. `{job}`, `{level}`): case-insensitive, resolved fresh on every execution, and left as-is if the value cannot be read (e.g. player not logged in). Initial supported variables: `{character}`, `{job}`, `{level}`, `{world}`
+- Variable substitution using curly brace syntax (e.g. `{job}`, `{level}`): case-insensitive, resolved fresh on every execution, and left as-is if the value cannot be read (e.g. player not logged in). Supported variables: `{character}`, `{homeworld}`, `{job}`, `{level}`, `{world}`
+- Variable system is provider-backed: `CommandResolver` aggregates one or more `IVariableProvider` sources into a lazily resolved registry of `VariableDescriptor` entries, so new variables (and future external sources) can be added without touching the resolver. The help window's variable table is generated from this registry rather than a hardcoded list
 - Help window accessible via `/silkstring help` or the new `i` button in the main window title bar, containing:
   - A live command tester that shows resolved output and highlights variable substitutions in green
   - **Commands** section covering alias basics, trigger syntax, command sequencing, variable overview, the macro restriction, and cycle detection behaviour
