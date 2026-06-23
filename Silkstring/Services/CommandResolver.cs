@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Dalamud.Plugin.Services;
 using Serilog;
 using Silkstring.Services.Variables;
 
@@ -19,15 +18,20 @@ public class CommandResolver
 
     public IReadOnlyCollection<VariableDescriptor> Variables => _variables.Values;
 
-    public string Resolve(string command)
+    public string Resolve(string command) => Resolve(command, []);
+    public string Resolve(string command, IReadOnlyList<string> args)
     {
         try
         {
-            return Regex.Replace(command, @"\{(\w+)\}", match =>
+            return Regex.Replace(command, @"\{(\w+|\*)\}", match =>
             {
                 var token = match.Groups[1].Value;
-                if (!_variables.TryGetValue(token, out var descriptor)) return match.Value;
-                return descriptor.Resolve() ?? match.Value;
+
+                if (token == "*") return string.Join(" ", args);
+                if (int.TryParse(token, out var index)) return index >= 1 && index <= args.Count ? args[index - 1] : match.Value;
+                if (_variables.TryGetValue(token, out var descriptor)) return descriptor.Resolve() ?? match.Value;
+
+                return match.Value;
             }, RegexOptions.IgnoreCase);
         }
         catch (Exception ex)
