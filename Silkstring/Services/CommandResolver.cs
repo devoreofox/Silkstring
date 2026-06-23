@@ -23,12 +23,23 @@ public class CommandResolver
     {
         try
         {
-            return Regex.Replace(command, @"\{(\w+|\*)\}", match =>
+            return Regex.Replace(command, @"\{(\d+\.\.\d+|\.\.\d+|\d+\.\.|\w+|\*)\}", match =>
             {
                 var token = match.Groups[1].Value;
 
                 if (token == "*") return string.Join(" ", args);
-                if (int.TryParse(token, out var index)) return index >= 1 && index <= args.Count ? args[index - 1] : match.Value;
+
+                if (token.Contains(".."))
+                {
+                    var parts = token.Split("..");
+                    var start = parts[0].Length == 0 ? 0 : int.Parse(parts[0]);
+                    var end = parts[1].Length == 0 ? args.Count : int.Parse(parts[1]);
+                    start = Math.Clamp(start, 0, args.Count);
+                    end = Math.Clamp(end, 0, args.Count);
+                    return start < end ? string.Join(" ", args.Skip(start).Take(end - start)) : string.Empty;
+                }
+
+                if (int.TryParse(token, out var index)) return index >= 0 && index < args.Count ? args[index] : match.Value;
                 if (_variables.TryGetValue(token, out var descriptor)) return descriptor.Resolve() ?? match.Value;
 
                 return match.Value;
