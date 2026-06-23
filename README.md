@@ -28,7 +28,7 @@ https://raw.githubusercontent.com/devoreofox/Silkstring/main/repo.json
 
 ## Usage
 
-Type `/silkstring` to open the alias manager, or `/silkstring help` (or the info icon in the title bar) to open the help window.
+Type `/silkstring` to open the alias manager, or `/silkstring help` (or the info icon in the title bar) to open the help window. Use `/silkstring changelog` (or the scroll icon in the title bar) to view release notes; the changelog also appears automatically the first time you launch a new version.
 
 The manager is a split panel: the list of aliases and folders is on the left, and the editor for the selected alias is on the right.
 
@@ -96,7 +96,7 @@ Type in chat: /greet Friend
 Runs: /wave Friend
 ```
 
-Wrap a value in quotes to keep multiple words as a single argument: `/greet "Bob Smith"` makes `{0}` equal `Bob Smith`.
+Wrap a value in quotes to keep multiple words as a single argument: `/greet "Jane Doe"` makes `{0}` equal `Jane Doe`.
 
 You can also pull ranges of arguments. Range ends are exclusive, the same as C# ranges:
 

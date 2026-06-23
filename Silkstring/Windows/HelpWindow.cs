@@ -255,7 +255,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextDisabled("Runs: /wave Friend");
         ImGui.Unindent();
         ImGui.Spacing();
-        ImGui.TextWrapped("Wrap a value in quotes to keep multiple words as a single argument. Typing /greet \"Bob Smith\" makes {0} equal Bob Smith.");
+        ImGui.TextWrapped("Wrap a value in quotes to keep multiple words as a single argument. Typing /greet \"Jane Doe\" makes {0} equal Jane Doe.");
         ImGui.Spacing();
         ImGui.TextWrapped("If you reference an argument that was not supplied, it is left as written (for example {3} stays {3}).");
         ImGui.Spacing();

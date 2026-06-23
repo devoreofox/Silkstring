@@ -22,7 +22,7 @@ public class MainWindow : Window, IDisposable
     internal AliasFolder? SelectedFolder => _selectedFolder;
 
 
-    public MainWindow(Plugin plugin, Action openSettings, Action openHelp) : base("Silkstring###Main")
+    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog) :  base("Silkstring###Main")
     {
         _selectPanel = new AliasSelectPanel(plugin.Configuration, this);
         _editPanel   = new AliasEditPanel(plugin.Configuration, this);
@@ -39,6 +39,13 @@ public class MainWindow : Window, IDisposable
             Icon = FontAwesomeIcon.InfoCircle,
             Click = _ => openHelp(),
             ShowTooltip = () => ImGui.SetTooltip("Help")
+        });
+
+        TitleBarButtons.Add(new TitleBarButton
+        {
+            Icon = FontAwesomeIcon.Scroll,
+            Click = _ => openChangelog(),
+            ShowTooltip = () => ImGui.SetTooltip("Changelog")
         });
     }
 
