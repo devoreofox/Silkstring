@@ -96,7 +96,7 @@ Type in chat: /greet Friend
 Runs: /wave Friend
 ```
 
-Wrap a value in quotes to keep multiple words as a single argument: `/greet "Bob Smith"` makes `{0}` equal `Bob Smith`.
+Wrap a value in quotes to keep multiple words as a single argument: `/greet "Jane Doe"` makes `{0}` equal `Jane Doe`.
 
 You can also pull ranges of arguments. Range ends are exclusive, the same as C# ranges:
 
