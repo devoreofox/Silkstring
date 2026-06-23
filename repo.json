@@ -13,8 +13,8 @@
       "utility"
     ],
     "DalamudApiLevel": 15,
-    "AssemblyVersion": "0.0.0.3",
-    "Version": "0.0.0.3",
+    "AssemblyVersion": "1.0.0.0",
+    "Version": "1.0.0.0",
     "DownloadLinkInstall": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
     "DownloadLinkUpdate": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip",
     "DownloadLinkTesting": "https://github.com/devoreofox/Silkstring/releases/latest/download/Silkstring.zip"
