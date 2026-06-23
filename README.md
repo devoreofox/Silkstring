@@ -28,7 +28,7 @@ https://raw.githubusercontent.com/devoreofox/Silkstring/main/repo.json
 
 ## Usage
 
-Type `/silkstring` to open the alias manager, or `/silkstring help` (or the info icon in the title bar) to open the help window.
+Type `/silkstring` to open the alias manager, or `/silkstring help` (or the info icon in the title bar) to open the help window. Use `/silkstring changelog` (or the scroll icon in the title bar) to view release notes; the changelog also appears automatically the first time you launch a new version.
 
 The manager is a split panel: the list of aliases and folders is on the left, and the editor for the selected alias is on the right.
 

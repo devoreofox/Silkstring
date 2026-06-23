@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.0.0 - TBD
+## v1.0.0.0 - 2026-06-23
 ### Added
 - Static cycle detection via a new `AliasValidator` service that performs a depth-first graph traversal across all aliases at authoring time and surfaces the full cycle chain (e.g. `mew → meow → mew`) as a live tooltip on the alias name input in the edit panel
 - Runtime recursion guard in `CommandHandler`: a `shouldSkip` predicate checks before each command whether it would trigger an alias currently mid-execution, skipping and logging a warning if so
@@ -14,6 +14,7 @@
   - **Commands** section covering alias basics, trigger syntax, command sequencing, variable and parameter overviews, the macro restriction, and cycle detection behaviour
   - **Variables** section explaining variable syntax and displaying a live reference table of all supported variables with their current resolved values
   - **Parameters** section explaining argument syntax with a reference table of positional, range, and all-args tokens
+- Changelog viewer: on first launch after an update (or a fresh install), a window shows the release notes for the new version, parsed from the bundled changelog, with a dropdown to browse previous versions. Reopen any time via `/silkstring changelog` or the scroll icon in the main window title bar
 
 ### Fixed
 - Closure capture bug in `CommandHandler`: all scheduled commands were executing the last command in the list due to the loop variable being captured by reference in the async lambda
