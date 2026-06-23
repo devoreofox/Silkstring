@@ -1,17 +1,19 @@
 # Changelog
 
-## v1.0.0 - TBD
+## v1.0.0.0 - TBD
 ### Added
 - Static cycle detection via a new `AliasValidator` service that performs a depth-first graph traversal across all aliases at authoring time and surfaces the full cycle chain (e.g. `mew → meow → mew`) as a live tooltip on the alias name input in the edit panel
 - Runtime recursion guard in `CommandHandler`: a `shouldSkip` predicate checks before each command whether it would trigger an alias currently mid-execution, skipping and logging a warning if so
 - `Configuration.GetAliases()` helper that lazily flattens top-level and folder aliases into a single `IEnumerable<AliasEntry>`, replacing duplicated `Concat`/`SelectMany` calls throughout the codebase
-- New `CommandResolver` service as the central pre-execution processing pipeline; currently handles variable resolution, with parameters and conditionals planned for future releases. `Resolve` is called in `CommandHandler.ExecuteAsync` before the cycle guard
+- New `CommandResolver` service as the central pre-execution processing pipeline; handles variable and parameter resolution, with conditionals planned for a future release. `Resolve` is called in `CommandHandler.ExecuteAsync` before the cycle guard
 - Variable substitution using curly brace syntax (e.g. `{job}`, `{level}`): case-insensitive, resolved fresh on every execution, and left as-is if the value cannot be read (e.g. player not logged in). Supported variables: `{character}`, `{homeworld}`, `{job}`, `{level}`, `{world}`
 - Variable system is provider-backed: `CommandResolver` aggregates one or more `IVariableProvider` sources into a lazily resolved registry of `VariableDescriptor` entries, so new variables (and future external sources) can be added without touching the resolver. The help window's variable table is generated from this registry rather than a hardcoded list
+- Alias parameters: arguments typed after the trigger are substituted into command lines with zero-indexed brace tokens. Supports positional (`{0}`, `{1}`), ranges (`{n..}`, `{..n}`, `{n..m}` with exclusive ends like C# ranges), all-args (`{*}`), and quote-aware parsing so multi-word values stay one argument (`"Bob Smith"`). Unsupplied positional references are left literal. A new `ArgumentParser` tokenizes the input; `ChatInterceptor` passes the parsed arguments through `CommandHandler.ExecuteAsync` into `CommandResolver.Resolve`
 - Help window accessible via `/silkstring help` or the new `i` button in the main window title bar, containing:
   - A live command tester that shows resolved output and highlights variable substitutions in green
-  - **Commands** section covering alias basics, trigger syntax, command sequencing, variable overview, the macro restriction, and cycle detection behaviour
+  - **Commands** section covering alias basics, trigger syntax, command sequencing, variable and parameter overviews, the macro restriction, and cycle detection behaviour
   - **Variables** section explaining variable syntax and displaying a live reference table of all supported variables with their current resolved values
+  - **Parameters** section explaining argument syntax with a reference table of positional, range, and all-args tokens
 
 ### Fixed
 - Closure capture bug in `CommandHandler`: all scheduled commands were executing the last command in the list due to the loop variable being captured by reference in the async lambda

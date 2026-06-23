@@ -13,6 +13,7 @@ public class HelpWindow : Window, IDisposable
     {
         Commands = 0,
         Variables = 1,
+        Parameters = 2,
     }
 
     private Tab _selectedTab = Tab.Commands;
@@ -64,6 +65,7 @@ public class HelpWindow : Window, IDisposable
         {
             case Tab.Commands:  DrawCommandsHelp();  break;
             case Tab.Variables: DrawVariablesHelp(); break;
+            case Tab.Parameters: DrawParametersHelp(); break;
         }
 
         ImGui.EndChild();
@@ -161,6 +163,12 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("Variables are resolved at the moment the alias fires, so they always reflect your current game state. " +
                           "See the Variables tab for a full list of supported variables.");
 
+        ImGui.TextColored(HeadingColor, "Parameters");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Aliases can take arguments typed after the trigger, inserted with numbered braces like {0}. See the Parameters tab for the full syntax.");
+        ImGui.Spacing();
+
         ImGui.TextColored(HeadingColor, "Macros");
         ImGui.Separator();
         ImGui.Spacing();
@@ -232,5 +240,54 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped(description);
         ImGui.TableNextColumn();
         ImGui.Text(currentValue);
+    }
+
+    private void DrawParametersHelp()
+    {
+        ImGui.TextColored(HeadingColor, "What are Parameters?");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Parameters let an alias take arguments. Anything you type after the trigger becomes a numbered argument, starting at zero, that you insert into command lines with curly braces.");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled("Alias \"greet\": /wave {0}");
+        ImGui.TextDisabled("Typed in chat: /greet Friend");
+        ImGui.TextDisabled("Runs: /wave Friend");
+        ImGui.Unindent();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Wrap a value in quotes to keep multiple words as a single argument. Typing /greet \"Bob Smith\" makes {0} equal Bob Smith.");
+        ImGui.Spacing();
+        ImGui.TextWrapped("If you reference an argument that was not supplied, it is left as written (for example {3} stays {3}).");
+        ImGui.Spacing();
+
+        ImGui.TextColored(HeadingColor, "Parameter Tokens");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Ranges work like C# ranges: the end is exclusive.");
+        ImGui.Spacing();
+
+        if (ImGui.BeginTable("###parametersTable", 2, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.RowBg))
+        {
+            ImGui.TableSetupColumn("Token", ImGuiTableColumnFlags.WidthFixed, 120);
+            ImGui.TableSetupColumn("Meaning", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableHeadersRow();
+
+            DrawParameterRow("{0}, {1}", "A single argument by position, starting at 0");
+            DrawParameterRow("{n..}", "Argument n through the end");
+            DrawParameterRow("{..n}", "The start up to (not including) argument n");
+            DrawParameterRow("{n..m}", "Argument n up to (not including) argument m");
+            DrawParameterRow("{*}", "All arguments");
+
+            ImGui.EndTable();
+        }
+    }
+
+    private void DrawParameterRow(string token, string meaning)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextDisabled(token);
+        ImGui.TableNextColumn();
+        ImGui.TextWrapped(meaning);
     }
 }
