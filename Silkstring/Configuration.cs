@@ -22,6 +22,7 @@ public class Configuration : IPluginConfiguration
     }
 
     public const int CurrentVersion = 2;
+    public string? LastSeenVersion { get; set; }
     public int Version { get; set; } = CurrentVersion;
     public List<AliasFolder> Folders = new();
     public List<AliasEntry> Aliases = new();

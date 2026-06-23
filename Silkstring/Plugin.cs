@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Dalamud.Game.Command;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.IoC;
@@ -63,7 +64,7 @@ public sealed class Plugin : IDalamudPlugin
         _chatInterceptor = new ChatInterceptor(GameInteropProvider, Framework, Configuration, _commandHandler);
 
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi);
+        MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi, ToggleChangelogUi);
         HelpWindow = new HelpWindow(_commandResolver);
         ChangelogWindow = new ChangelogWindow();
 
@@ -74,13 +75,23 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "/silkstring → Open the Silkstring alias manager.\n/silkstring help → Open the Silkstring help window. \n/silkstring changelog → Open the Silkstring changelog window."
+            HelpMessage = "/silkstring → Open the Silkstring alias manager.\n" +
+                          "/silkstring help → Open the Silkstring help window. \n" +
+                          "/silkstring changelog → Open the Silkstring changelog window."
         });
 
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
         PluginInterface.UiBuilder.OpenMainUi += ToggleMainUi;
         Framework.Update += OnFrameworkUpdate;
+
+        var current = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+        if (Configuration.LastSeenVersion != current)
+        {
+            ChangelogWindow.IsOpen = true;
+            Configuration.LastSeenVersion = current;
+            Configuration.Save();
+        }
     }
 
     public void Dispose()
