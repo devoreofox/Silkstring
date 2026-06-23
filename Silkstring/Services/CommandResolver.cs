@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Dalamud.Plugin.Services;
 using Serilog;
 using Silkstring.Services.Variables;
 
@@ -19,15 +18,31 @@ public class CommandResolver
 
     public IReadOnlyCollection<VariableDescriptor> Variables => _variables.Values;
 
-    public string Resolve(string command)
+    public string Resolve(string command) => Resolve(command, []);
+    public string Resolve(string command, IReadOnlyList<string> args)
     {
         try
         {
-            return Regex.Replace(command, @"\{(\w+)\}", match =>
+            return Regex.Replace(command, @"\{(\d+\.\.\d+|\.\.\d+|\d+\.\.|\w+|\*)\}", match =>
             {
                 var token = match.Groups[1].Value;
-                if (!_variables.TryGetValue(token, out var descriptor)) return match.Value;
-                return descriptor.Resolve() ?? match.Value;
+
+                if (token == "*") return string.Join(" ", args);
+
+                if (token.Contains(".."))
+                {
+                    var parts = token.Split("..");
+                    var start = parts[0].Length == 0 ? 0 : int.Parse(parts[0]);
+                    var end = parts[1].Length == 0 ? args.Count : int.Parse(parts[1]);
+                    start = Math.Clamp(start, 0, args.Count);
+                    end = Math.Clamp(end, 0, args.Count);
+                    return start < end ? string.Join(" ", args.Skip(start).Take(end - start)) : string.Empty;
+                }
+
+                if (int.TryParse(token, out var index)) return index >= 0 && index < args.Count ? args[index] : match.Value;
+                if (_variables.TryGetValue(token, out var descriptor)) return descriptor.Resolve() ?? match.Value;
+
+                return match.Value;
             }, RegexOptions.IgnoreCase);
         }
         catch (Exception ex)

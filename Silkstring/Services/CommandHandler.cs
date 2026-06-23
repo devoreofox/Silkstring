@@ -19,12 +19,12 @@ public class CommandHandler
         _framework = framework;
     }
 
-    public async Task ExecuteAsync(IReadOnlyList<string> commands, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null)
+    public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null)
     {
         for (var i = 0; i < commands.Count; i++)
         {
             var cmd = commands[i];
-            cmd = _resolver.Resolve(cmd);
+            cmd = _resolver.Resolve(cmd, args);
             if (shouldSkip != null && cmd.StartsWith("/"))
             {
                 var parts = cmd.TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);

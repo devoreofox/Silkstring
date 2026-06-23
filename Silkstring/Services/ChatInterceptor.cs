@@ -56,6 +56,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
                 var alias = AliasMatcher.Match(commandName, _configuration.GetAliases());
                 if (alias != null)
                 {
+                    var args = ArgumentParser.Parse(inputString[splitString[0].Length..].TrimStart());
                     var commands = alias.Output
                                         .Where(c => !string.IsNullOrWhiteSpace(c.Command))
                                         .Select(c => c.Command.Trim())
@@ -67,7 +68,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
 
                     bool ShouldSkip(string cmd) => _executingAliases.Contains(cmd);
 
-                    _commandHandler.ExecuteAsync(commands, _configuration.CommandDelay, _cts.Token,
+                    _commandHandler.ExecuteAsync(commands, args, _configuration.CommandDelay, _cts.Token,
                                                  shouldSkip: ShouldSkip)
                                    .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"),
                                                  TaskContinuationOptions.OnlyOnFaulted)

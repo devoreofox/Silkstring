@@ -86,6 +86,30 @@ Variables let you insert live game values into a line using curly brace syntax. 
 
 Currently supported variables: `{character}`, `{homeworld}`, `{job}`, `{level}`, `{world}`. The Variables tab of the help window lists them with their current values, and the command tester at the top of the help window shows resolved output as you type.
 
+### Parameters
+
+Aliases can take arguments. Anything typed after the trigger becomes a numbered argument (starting at `0`) that you insert with curly braces:
+
+```
+Alias "greet" line: /wave {0}
+Type in chat: /greet Friend
+Runs: /wave Friend
+```
+
+Wrap a value in quotes to keep multiple words as a single argument: `/greet "Bob Smith"` makes `{0}` equal `Bob Smith`.
+
+You can also pull ranges of arguments. Range ends are exclusive, the same as C# ranges:
+
+| Token | Meaning |
+| --- | --- |
+| `{0}`, `{1}`, ... | a single argument by position (starts at 0) |
+| `{n..}` | argument n through the end |
+| `{..n}` | the start up to (not including) argument n |
+| `{n..m}` | argument n up to (not including) argument m |
+| `{*}` | all arguments |
+
+If you reference an argument that was not supplied, it is left as written (e.g. `{3}` stays `{3}`).
+
 ### Folders
 
 Create a folder with the **New Folder** button, then drag aliases into or out of it. Folders can be collapsed, renamed, and deleted from their right-click menu.
