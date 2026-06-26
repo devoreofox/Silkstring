@@ -2,48 +2,26 @@
 
 ## v1.0.0.0 - 2026-06-23
 ### Added
-- Static cycle detection via a new `AliasValidator` service that performs a depth-first graph traversal across all aliases at authoring time and surfaces the full cycle chain (e.g. `mew → meow → mew`) as a live tooltip on the alias name input in the edit panel
-- Runtime recursion guard in `CommandHandler`: a `shouldSkip` predicate checks before each command whether it would trigger an alias currently mid-execution, skipping and logging a warning if so
-- `Configuration.GetAliases()` helper that lazily flattens top-level and folder aliases into a single `IEnumerable<AliasEntry>`, replacing duplicated `Concat`/`SelectMany` calls throughout the codebase
-- New `CommandResolver` service as the central pre-execution processing pipeline; handles variable and parameter resolution, with conditionals planned for a future release. `Resolve` is called in `CommandHandler.ExecuteAsync` before the cycle guard
-- Variable substitution using curly brace syntax (e.g. `{job}`, `{level}`): case-insensitive, resolved fresh on every execution, and left as-is if the value cannot be read (e.g. player not logged in). Supported variables: `{character}`, `{homeworld}`, `{job}`, `{level}`, `{world}`
-- Variable system is provider-backed: `CommandResolver` aggregates one or more `IVariableProvider` sources into a lazily resolved registry of `VariableDescriptor` entries, so new variables (and future external sources) can be added without touching the resolver. The help window's variable table is generated from this registry rather than a hardcoded list
-- Alias parameters: arguments typed after the trigger are substituted into command lines with zero-indexed brace tokens. Supports positional (`{0}`, `{1}`), ranges (`{n..}`, `{..n}`, `{n..m}` with exclusive ends like C# ranges), all-args (`{*}`), and quote-aware parsing so multi-word values stay one argument (`"Jane Doe"`). Unsupplied positional references are left literal. A new `ArgumentParser` tokenizes the input; `ChatInterceptor` passes the parsed arguments through `CommandHandler.ExecuteAsync` into `CommandResolver.Resolve`
-- Help window accessible via `/silkstring help` or the new `i` button in the main window title bar, containing:
-  - A live command tester that shows resolved output and highlights variable substitutions in green
-  - **Commands** section covering alias basics, trigger syntax, command sequencing, variable and parameter overviews, the macro restriction, and cycle detection behaviour
-  - **Variables** section explaining variable syntax and displaying a live reference table of all supported variables with their current resolved values
-  - **Parameters** section explaining argument syntax with a reference table of positional, range, and all-args tokens
-- Changelog viewer: on first launch after an update (or a fresh install), a window shows the release notes for the new version, parsed from the bundled changelog, with a dropdown to browse previous versions. Reopen any time via `/silkstring changelog` or the scroll icon in the main window title bar
-
-### Fixed
-- Closure capture bug in `CommandHandler`: all scheduled commands were executing the last command in the list due to the loop variable being captured by reference in the async lambda
-- Alias validation now trims whitespace and ignores empty entries, preventing inputs like `" "` or `"mew| "` from passing as valid
-- Filter bar in the alias select panel now matches against display names in addition to raw command names
-- ID collisions on clipboard import: imported aliases no longer share an ID with the original, making both selectable
-- Clipboard import failures now surface a toast notification instead of silently failing
-- `Log.Error` calls now correctly include the exception object
-- Various typos corrected (`occured`, `Seperate`)
+- Variables: insert live game info into your commands with `{character}`, `{job}`, `{level}`, `{world}`, and `{homeworld}`. They fill in automatically each time the alias runs, and are left as written if the value can't be read (for example when you are not logged in)
+- Parameters: aliases can now take arguments. Type words after the trigger and drop them into your commands with `{0}`, `{1}`, ranges like `{1..}` or `{..2}`, or `{*}` for all of them. Wrap multi-word values in quotes, for example `"Jane Doe"`
+- Help window: open it with `/silkstring help` or the info button in the title bar for a live command tester and a reference covering commands, variables, and parameters
+- Changelog window: after each update a window shows what is new, with a dropdown to browse previous versions. Reopen it any time with `/silkstring changelog` or the scroll button in the title bar
+- Loop protection: Silkstring warns you in the editor when aliases would trigger each other in a loop, and skips any that slip through so they cannot spam commands
 
 ### Changed
-- Alias lines are now sent exactly as written: lines beginning with `/` run as game commands, while lines without a `/` are sent as chat messages to your currently active channel (say, party, free company, etc.)
-- `CommandHandler.ExecuteAsync` now accepts a `shouldSkip` predicate parameter; `ChatInterceptor` tracks currently executing alias trigger names in a `HashSet<string>` and cleans up via a `ContinueWith` continuation on the framework thread
-- Folders, aliases, and commands now use a stable `UniqueId` generated via `Interlocked.Increment` instead of `GetHashCode()`
-- `Blacklist` switched from `string[]` to `HashSet<string>` with `OrdinalIgnoreCase` for O(1) lookups
-- Config saves are now debounced: rapid text input no longer triggers a full save on every keystroke; explicit actions (create, delete, toggle) still save immediately
-- `CommandDelay` setter now clamps to `[0, 1000]` regardless of what's in the config file
-- `SelectPanelFooter` extracted from `AliasSelectPanel`; footer actions now communicate via callbacks rather than direct state mutation
-- `SelectedAlias` in `MainWindow` is now driven by a `SelectionChanged` event rather than a mutable shared property
-- Multiline command parser now uses `StringSplitOptions.TrimEntries`
-- `CancellationToken` added to command scheduling; unnecessary post-final-command delay removed
-- Switched to `IReadOnlyList<T>` in `CommandHandler`
+- Lines that start with `/` run as game commands. Lines without a `/` are now sent as chat messages to whatever channel you currently have active (say, party, free company, and so on)
 
-### Removed
-- `EditWindow`: no longer wired up anywhere
+### Fixed
+- Aliases now reliably run every command in order (previously they could repeat the last command)
+- Imported aliases no longer clash with the original, so both stay selectable
+- Importing invalid clipboard text now shows an error notification instead of doing nothing
+- Blank or spaces-only trigger names are no longer accepted
+- The filter bar now also matches display names, not just trigger names
+- Assorted typos fixed
 
 ### Notes
-- Existing aliases are automatically migrated on first launch after updating: a leading `/` is added to their commands so they keep behaving as before
-- Before migrating, a backup of your previous configuration is saved next to it (e.g. `Silkstring.v1.backup.json`)
+- Your existing aliases are updated automatically so they keep working under the new slash rules
+- A backup of your previous configuration is saved first, just in case (for example `Silkstring.v1.backup.json`)
 
 ## v0.0.0.3 - 2026-05-16
 
@@ -58,7 +36,7 @@
 
 ### Changed
 - UI completely redesigned as a split panel layout - selector on the left, editor on the right
-- `EditWindow` removed; editing now happens inline in the main window
+- The separate edit window was removed; editing now happens inline in the main window
 - Alphabetical sorting by display name, falling back to trigger name
 
 ### Notes
