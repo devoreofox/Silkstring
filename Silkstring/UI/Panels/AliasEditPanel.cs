@@ -93,9 +93,17 @@ public class AliasEditPanel
 
         if (ImGui.InputTextMultiline($"###multiline{alias.UniqueId}", ref _multilineBuffer, 5000, new Vector2(-1, ImGui.GetContentRegionAvail().Y)))
         {
-            ApplyMultiline(alias, _multilineBuffer);
-            _configuration.MarkDirty();
-            RefreshCycleCheck();
+            if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+            {
+                _multilineAliasId = -1;
+            }
+
+            else
+            {
+                ApplyMultiline(alias, _multilineBuffer);
+                _configuration.MarkDirty();
+                RefreshCycleCheck();
+            }
         }
     }
 

@@ -2,7 +2,7 @@ using Dalamud.Bindings.ImGui;
 
 namespace Silkstring.UI;
 
-public class ImGuiUtil
+public static class ImGuiUtil
 {
     public static void Tooltip(string text, bool allowWhenDisabled = false)
     {

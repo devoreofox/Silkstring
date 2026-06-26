@@ -11,6 +11,7 @@ public class CommandEntry
     public string Command = string.Empty;
 
     [NonSerialized]
+    [JsonIgnore]
     public bool Delete;
 
     [NonSerialized]

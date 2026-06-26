@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.1.0 - 2026-06-26
+### Fixed
+- Pressing Escape while editing in the multiline command box no longer clears what you typed
+- Adding a blank command line no longer stops an alias from working
+
 ## v1.0.0.0 - 2026-06-23
 ### Added
 - Variables: insert live game info into your commands with `{character}`, `{job}`, `{level}`, `{world}`, and `{homeworld}`. They fill in automatically each time the alias runs, and are left as written if the value can't be read (for example when you are not logged in)

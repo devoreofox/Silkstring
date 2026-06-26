@@ -76,7 +76,7 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
             HelpMessage = "/silkstring → Open the Silkstring alias manager.\n" +
-                          "/silkstring help → Open the Silkstring help window. \n" +
+                          "/silkstring help → Open the Silkstring help window.\n" +
                           "/silkstring changelog → Open the Silkstring changelog window."
         });
 

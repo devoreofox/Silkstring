@@ -19,16 +19,11 @@ public class AliasEntry
 
     public string DisplayName = string.Empty;
     public string Name = string.Empty;
-    public string EffectiveName => string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
+    [JsonIgnore] public string EffectiveName => string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
     public bool Enabled = true;
     public List<CommandEntry> Output = new();
 
-    [NonSerialized]
-    public bool Delete;
-
-    [NonSerialized]
-    [JsonIgnore]
-    public int UniqueId;
+    [NonSerialized] [JsonIgnore] public int UniqueId;
 
     public AliasEntry()
     {
@@ -46,8 +41,7 @@ public class AliasEntry
             if (name.Contains(' ')) return false;
             if (name.Contains('/')) return false;
         }
-        if (Output.Count == 0) return false;
-        return !Output.Any(command => string.IsNullOrWhiteSpace(command.Command));
+        return Output.Any(command => !string.IsNullOrWhiteSpace(command.Command));
     }
 
     public AliasEntry Clone()
