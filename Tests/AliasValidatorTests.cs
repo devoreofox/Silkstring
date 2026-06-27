@@ -43,4 +43,13 @@ public class AliasValidatorTests
         Assert.Empty(AliasValidator.FindCycle(a, new[] { a }));
     }
 
+    [Fact] public void ValidIf() => Assert.Null(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} < 50", "/echo", ":endif")));
+    [Fact] public void ValidIfElse() => Assert.Null(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} < 50", "/a", ":else", "/b", ":endif")));
+    [Fact] public void NestedValid() => Assert.Null(AliasValidator.ValidateBlocks(Alias("a", ":if {a} == 1", ":if {b} == 2", "/c", ":endif", ":endif")));
+    [Fact] public void NoBlocks() => Assert.Null(AliasValidator.ValidateBlocks(Alias("a", "/say hi")));
+    [Fact] public void Unclosed() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} < 50", "/a")));
+    [Fact] public void OrphanElse() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":else")));
+    [Fact] public void OrphanEndIf() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":endif")));
+    [Fact] public void DuplicateElse() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":if {a} == 1", ":else", ":else", ":endif")));
+    [Fact] public void BadExpression() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} <=", ":endif")));
 }
