@@ -84,7 +84,7 @@ Variables let you insert live game values into a line using curly brace syntax. 
 /say I am {character}, a level {level} {job} from {world}!
 ```
 
-Currently supported variables: `{character}`, `{homeworld}`, `{job}`, `{level}`, `{world}`. The Variables tab of the help window lists them with their current values, and the command tester at the top of the help window shows resolved output as you type.
+Silkstring includes variables for your character, job, HP and MP, combat state, target, currency, and more, and the list keeps growing. For the full, always-current list with live values, open the Variables tab of the help window (`/silkstring help`). The command tester at the top of that window shows resolved output as you type.
 
 ### Parameters
 

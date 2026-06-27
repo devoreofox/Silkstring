@@ -17,11 +17,14 @@ namespace Silkstring;
 public sealed class Plugin : IDalamudPlugin
 {
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
+    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
     [PluginService] internal static INotificationManager NotificationManager { get; private set; } = null!;
+    [PluginService] internal static ITargetManager TargetManager { get; private set; } = null!;
+    [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
     [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
+    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
+    [PluginService] internal static ICondition Condition { get; private set; } = null!;
 
     private const string CommandName = "/silkstring";
 
@@ -57,7 +60,13 @@ public sealed class Plugin : IDalamudPlugin
 
         ECommonsMain.Init(PluginInterface, this);
 
-        IVariableProvider[] providers = [new PlayerVariableProvider(PlayerState)];
+        IVariableProvider[] providers =
+            [
+                new PlayerVariableProvider(PlayerState),
+                new VitalsVariablesProvider(ClientState),
+                new CombatVariablesProvider(Condition, TargetManager),
+                new CurrencyVariablesProvider()
+            ];
 
         _commandResolver = new CommandResolver(providers);
         _commandHandler = new CommandHandler(_commandResolver, Framework);

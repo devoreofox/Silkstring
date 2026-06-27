@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.0.0 - 2026-06-27
+### Added
+- New variables: your HP and MP (including percentages), whether you are in combat, whether you have a target, and your Gil and MGP
+
 ## v1.0.1.0 - 2026-06-26
 ### Fixed
 - Pressing Escape while editing in the multiline command box no longer clears what you typed
