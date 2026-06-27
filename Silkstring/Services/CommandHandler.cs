@@ -24,7 +24,7 @@ public class CommandHandler
         for (var i = 0; i < commands.Count; i++)
         {
             var cmd = commands[i];
-            cmd = _resolver.Resolve(cmd, args);
+            cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(cmd, args));
             if (shouldSkip != null && cmd.StartsWith("/"))
             {
                 var parts = cmd.TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);
