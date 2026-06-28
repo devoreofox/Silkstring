@@ -14,6 +14,7 @@ public class HelpWindow : Window, IDisposable
         Commands = 0,
         Variables = 1,
         Parameters = 2,
+        Conditionals = 3,
     }
 
     private Tab _selectedTab = Tab.Commands;
@@ -66,6 +67,7 @@ public class HelpWindow : Window, IDisposable
             case Tab.Commands:  DrawCommandsHelp();  break;
             case Tab.Variables: DrawVariablesHelp(); break;
             case Tab.Parameters: DrawParametersHelp(); break;
+            case Tab.Conditionals: DrawConditionalsHelp(); break;
         }
 
         ImGui.EndChild();
@@ -167,6 +169,12 @@ public class HelpWindow : Window, IDisposable
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Aliases can take arguments typed after the trigger, inserted with numbered braces like {0}. See the Parameters tab for the full syntax.");
+        ImGui.Spacing();
+
+        ImGui.TextColored(HeadingColor, "Conditionals");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks. See the Conditionals tab.");
         ImGui.Spacing();
 
         ImGui.TextColored(HeadingColor, "Macros");
@@ -289,5 +297,47 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextDisabled(token);
         ImGui.TableNextColumn();
         ImGui.TextWrapped(meaning);
+    }
+
+    private void DrawConditionalsHelp()
+    {
+        ImGui.TextColored(HeadingColor, "What are Conditionals?");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Conditionals let an alias run some commands only when a condition is true. They use block syntax: everything between :if and :endif runs only when the condition holds.");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled(":if {hpp} < 50");
+        ImGui.TextDisabled("/ac Cure");
+        ImGui.TextDisabled(":else");
+        ImGui.TextDisabled("/say all good");
+        ImGui.TextDisabled(":endif");
+        ImGui.Unindent();
+        ImGui.Spacing();
+        ImGui.BulletText("A block can hold multiple commands, all gated by the same condition.");
+        ImGui.BulletText("The :else block is optional and runs when the condition is false.");
+        ImGui.BulletText("Blocks can be nested inside other blocks.");
+        ImGui.BulletText("The :if, :else, and :endif lines are never sent to chat.");
+        ImGui.Spacing();
+
+        ImGui.TextColored(HeadingColor, "Conditions");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("A condition either compares two values, or checks a true/false variable on its own. Comparisons can be combined with and (&&) and or (||).");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled(":if {hpp} < 50 && {incombat}");
+        ImGui.TextDisabled(":if {job} == WHM || {job} == SCH");
+        ImGui.TextDisabled(":if {incombat}");
+        ImGui.Unindent();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Operators: == and != for equality, < > <= >= for numbers, plus && and || to combine. Text comparisons are case-insensitive, and numbers compare as numbers.");
+        ImGui.Spacing();
+        ImGui.TextWrapped("Either side of a comparison can be a variable, a parameter, or plain text, so a condition can react to game state or to what you typed:");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled(":if {0} == on");
+        ImGui.Unindent();
+        ImGui.Spacing();
     }
 }
