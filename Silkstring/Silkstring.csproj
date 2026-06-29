@@ -21,4 +21,8 @@
     <ItemGroup>
         <PackageReference Include="ECommons" Version="3.2.0.18" />
     </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Tests" />
+    </ItemGroup>
 </Project>

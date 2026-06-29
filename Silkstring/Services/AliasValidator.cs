@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Silkstring.Models;
+using Silkstring.Services.Conditions;
 
 namespace Silkstring.Services;
 
@@ -12,6 +13,37 @@ public static class AliasValidator
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var path = new List<string>();
         return Dfs(target, lookup, visited, path);
+    }
+
+    public static string? ValidateBlocks(AliasEntry Alias)
+    {
+        var elseSeen = new Stack<bool>();
+
+        foreach (var command in Alias.Output)
+        {
+            var (kind, expression) = BlockInterpreter.Classify((command.Command.Trim()));
+
+            switch (kind)
+            {
+                case BlockKind.If:
+                    try { new Parser(Tokenizer.Tokenize(expression)).Parse(); }
+                    catch (ConditionException ex) { return $"Invalid condition: {ex.Message}"; }
+                    elseSeen.Push(false);
+                    break;
+                case BlockKind.Else:
+                    if (elseSeen.Count == 0) return ":else without a matching :if";
+                    if (elseSeen.Peek()) return "Duplicate :else in a block";
+                    elseSeen.Pop();
+                    elseSeen.Push(true);
+                    break;
+                case BlockKind.EndIf:
+                    if (elseSeen.Count == 0) return ":endif without a matching :if";
+                    elseSeen.Pop();
+                    break;
+            }
+        }
+
+        return elseSeen.Count > 0 ? "Unclosed :if (missing :endif)" : null;
     }
 
     private static Dictionary<string, AliasEntry> BuildTriggerLookup(IEnumerable<AliasEntry> allAliases)

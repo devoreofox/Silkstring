@@ -17,6 +17,7 @@ public class AliasEditPanel
 
     private AliasEntry? _selectedAlias;
     private List<string>? _detectedCycle;
+    private string? _blockError;
 
     private string _multilineBuffer = string.Empty;
     private int _multilineAliasId = -1;
@@ -27,7 +28,7 @@ public class AliasEditPanel
         {
             _selectedAlias = alias;
             if (alias != null) RefreshCycleCheck();
-            else _detectedCycle = null;
+            else { _detectedCycle = null; _blockError = null; }
         };
         _configuration = configuration;
     }
@@ -44,6 +45,11 @@ public class AliasEditPanel
 
         DrawAliasHeader(alias);
         ImGui.Separator();
+        if (_blockError != null)
+        {
+            ImGui.TextColored(new Vector4(1f, 0.4f, 0.4f, 1f), _blockError);
+            ImGui.Spacing();
+        }
         DrawCommandList(alias);
     }
 
@@ -148,6 +154,7 @@ public class AliasEditPanel
     {
         if (_selectedAlias == null) return;
         _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
+        _blockError = AliasValidator.ValidateBlocks(_selectedAlias);
     }
 
     private void SyncMultilineBuffer(AliasEntry alias)

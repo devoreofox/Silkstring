@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0.0 - 2026-06-29
+### Added
+- Conditionals: run commands only when a condition is true, using `:if` / `:else` / `:endif` blocks. Everything in a block runs only when its condition holds, with an optional `:else` for the false case, and blocks can be nested
+- Conditions compare values with `==`, `!=`, `<`, `>`, `<=`, `>=` and combine with `&&` (and) and `||` (or). Either side can be a variable, a parameter, or plain text, for example `:if {hpp} < 50 && {incombat}` or `:if {0} == on`
+- The alias editor warns you when a conditional block is left open or a condition cannot be understood
+
 ## v1.1.0.0 - 2026-06-27
 ### Added
 - New variables: your HP and MP (including percentages), whether you are in combat, whether you have a target, and your Gil and MGP

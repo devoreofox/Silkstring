@@ -110,6 +110,30 @@ You can also pull ranges of arguments. Range ends are exclusive, the same as C# 
 
 If you reference an argument that was not supplied, it is left as written (e.g. `{3}` stays `{3}`).
 
+### Conditionals
+
+Aliases can run commands only when a condition is true, using `:if` / `:else` / `:endif` blocks:
+
+```
+:if {hpp} < 50
+/ac Cure
+:else
+/say all good
+:endif
+```
+
+Everything between `:if` and `:endif` runs only when the condition holds; the optional `:else` block runs when it does not. A block can contain multiple commands, and blocks can be nested.
+
+A condition compares values with `==`, `!=`, `<`, `>`, `<=`, `>=`, and you can combine comparisons with `&&` (and) and `||` (or). Either side can be a variable, a parameter, or plain text, so conditions can react to game state or to what you typed:
+
+```
+:if {incombat} && {hpp} < 50
+:if {job} == WHM || {job} == SCH
+:if {0} == on
+```
+
+Text comparisons are case-insensitive, and numbers compare as numbers. The `:if`, `:else`, and `:endif` lines are never sent to chat, and the alias editor warns you if a block is left open or a condition cannot be understood.
+
 ### Folders
 
 Create a folder with the **New Folder** button, then drag aliases into or out of it. Folders can be collapsed, renamed, and deleted from their right-click menu.
