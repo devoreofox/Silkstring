@@ -8,6 +8,7 @@ A Dalamud plugin for FFXIV that lets you define custom command aliases. Each ali
 - Run multiple lines per alias, in order, with a configurable delay between them
 - Mix game commands and chat messages in a single alias
 - Insert live game state with variables such as `{character}` and `{job}`
+- Define your own variables and change them on the fly from inside an alias
 - Give an alias several triggers using a `|` separator
 - Organize aliases into collapsible folders with drag and drop
 - Set a friendly display name for an alias, separate from its trigger
@@ -133,6 +134,29 @@ A condition compares values with `==`, `!=`, `<`, `>`, `<=`, `>=`, and you can c
 ```
 
 Text comparisons are case-insensitive, and numbers compare as numbers. The `:if`, `:else`, and `:endif` lines are never sent to chat, and the alias editor warns you if a block is left open or a condition cannot be understood.
+
+### User Variables
+
+Alongside the built-in variables, you can define your own. Open the Variables window with `/silkstring variables`, type a name, and give it a value. Names can use letters, numbers, and underscores, and cannot reuse a built-in variable name.
+
+Your variables work just like the built-in ones: insert them anywhere with `{name}`, and they appear in the Variables tab of the help window.
+
+You can change a variable from inside an alias with `:set`:
+
+```
+:set mode raid
+:set greeting hi {0}
+```
+
+The value is resolved when the line runs, so it can include other variables and parameters, and the result is saved automatically and kept between sessions. A `:set` only affects a variable you have already created. If it names one that does not exist, nothing happens and the alias editor warns you.
+
+Because conditions treat `true` and `false` the same way as the built-in switches, a variable makes a handy on/off flag. Toggle it in one alias with `:set burst true` (or `false`), and check it in another:
+
+```
+:if {burst}
+/say bursting
+:endif
+```
 
 ### Folders
 
