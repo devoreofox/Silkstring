@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using Silkstring.Services;
+using Silkstring.Services.Variables;
+using Silkstring.UI;
 
 namespace Silkstring.Windows;
 
@@ -164,6 +167,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.TextWrapped("Variables are resolved at the moment the alias fires, so they always reflect your current game state. " +
                           "See the Variables tab for a full list of supported variables.");
+        ImGui.TextWrapped("You can also define your own variables, see the Variables tab.");
 
         ImGui.TextColored(HeadingColor, "Parameters");
         ImGui.Separator();
@@ -219,31 +223,52 @@ public class HelpWindow : Window, IDisposable
                           "it is left as-is in the command string rather than being replaced with an empty value.");
         ImGui.Spacing();
 
+        ImGui.TextColored(HeadingColor, "Your Own Variables");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Besides the built-in variables below, you can define your own. Open the Variables window with /silkstring variables, give it a name and a value, then use it anywhere with {name}.");
+        ImGui.Spacing();
+        ImGui.TextWrapped("Change a variable from inside an alias with :set. The value is resolved when the line runs, saved automatically, and kept between sessions:");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled(":set mode raid");
+        ImGui.TextDisabled(":set greeting hi {0}");
+        ImGui.Unindent();
+        ImGui.Spacing();
+        ImGui.TextWrapped("A :set only works on a variable you have already created. The alias editor warns you if it names one that does not exist.");
+        ImGui.Spacing();
+
         ImGui.TextColored(HeadingColor, "Available Variables");
         ImGui.Separator();
         ImGui.Spacing();
 
-        if (ImGui.BeginTable("###variablesTable", 3, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.RowBg))
+        foreach (var group in _resolver.Variables.GroupBy(v => v.Category).OrderBy(g => g.Key == "User" ? 1 : 0).ThenBy(g => g.Key))
+        {
+            DrawVariableCategory(group.Key, group.OrderBy(v => v.Name));
+        }
+    }
+
+    private void DrawVariableCategory(string category, IEnumerable<VariableDescriptor> variables)
+    {
+        ImGui.TextColored(HeadingColor, category);
+        if (ImGui.BeginTable($"###varTable_{category}", 3, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersOuter))
         {
             ImGui.TableSetupColumn("Variable", ImGuiTableColumnFlags.WidthFixed, 120);
             ImGui.TableSetupColumn("Description", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("Current Value", ImGuiTableColumnFlags.WidthFixed, 150);
-            ImGui.TableHeadersRow();
-
-            foreach (var variable in _resolver.Variables.OrderBy(v => v.Category).ThenBy(v => v.Name))
-            {
+            foreach (var variable in variables)
                 DrawVariableRow($"{{{variable.Name}}}", variable.Description, variable.Resolve() ?? "Not available");
-            }
-
             ImGui.EndTable();
         }
+        ImGui.Spacing();
     }
 
     private void DrawVariableRow(string variable, string description, string currentValue)
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextDisabled(variable);
+        ImGui.TextColored(Palette.VariableToken, variable);
+
         ImGui.TableNextColumn();
         ImGui.TextWrapped(description);
         ImGui.TableNextColumn();

@@ -8,7 +8,8 @@ internal enum BlockKind
     Command,
     If,
     Else,
-    EndIf
+    EndIf,
+    Set
 }
 
 internal sealed class BlockInterpreter
@@ -21,7 +22,15 @@ internal sealed class BlockInterpreter
         if (line.StartsWith(":if ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.If, line[4..]);
         if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
         if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
+        if (line.StartsWith(":set ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Set, line[5..]);
         return (BlockKind.Command, line);
+    }
+
+    public static (string Name, string Value) ParseSet(string expression)
+    {
+        var trimmed = expression.Trim();
+        var space = trimmed.IndexOf(' ');
+        return space < 0 ? (trimmed, "") : (trimmed[..space], trimmed[(space + 1)..].Trim());
     }
 
     public void EnterIf(bool conditionMet)

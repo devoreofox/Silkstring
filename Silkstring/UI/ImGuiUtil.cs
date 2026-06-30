@@ -9,4 +9,11 @@ public static class ImGuiUtil
         var flags = allowWhenDisabled ? ImGuiHoveredFlags.AllowWhenDisabled : ImGuiHoveredFlags.None;
         if (ImGui.IsItemHovered(flags)) ImGui.SetTooltip(text);
     }
+
+    public static void TextWrappedDisabled(string text)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled));
+        ImGui.TextWrapped(text);
+        ImGui.PopStyleColor();
+    }
 }

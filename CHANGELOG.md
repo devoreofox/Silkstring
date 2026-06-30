@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0.0 - 2026-06-30
+### Added
+- Your own variables: create variables in the new Variables window (open it with `/silkstring variables`), give each one a value, and use it in any alias with `{name}`, just like the built-in ones
+- Change a variable from inside an alias with `:set`, for example `:set mode raid`. The new value is saved automatically and kept between sessions
+- The alias editor warns you when a `:set` points at a variable you have not created yet
+
 ## v1.2.0.0 - 2026-06-29
 ### Added
 - Conditionals: run commands only when a condition is true, using `:if` / `:else` / `:endif` blocks. Everything in a block runs only when its condition holds, with an optional `:else` for the false case, and blocks can be nested

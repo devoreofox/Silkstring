@@ -6,6 +6,9 @@ public class AliasValidatorTests
     private static AliasEntry Alias(string name, params string[] output)
         => new() { Name = name, Output = output.Select(o => new CommandEntry { Command = o }).ToList() };
 
+    private static HashSet<string> Defined(params string[] names)
+        => new(names, StringComparer.OrdinalIgnoreCase);
+
     [Fact]
     public void DetectsDirectCycle()
     {
@@ -52,4 +55,11 @@ public class AliasValidatorTests
     [Fact] public void OrphanEndIf() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":endif")));
     [Fact] public void DuplicateElse() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":if {a} == 1", ":else", ":else", ":endif")));
     [Fact] public void BadExpression() => Assert.NotNull(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} <=", ":endif")));
+
+    [Fact] public void SetKnown() => Assert.Null(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined("foo")));
+    [Fact] public void SetCaseInsensitive() => Assert.Null(AliasValidator.ValidateSets(Alias("a", ":set FOO bar"), Defined("foo")));
+    [Fact] public void SetUnknown() => Assert.NotNull(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined()));
+    [Fact] public void SetNoName() => Assert.NotNull(AliasValidator.ValidateSets(Alias("a", ":set "), Defined("foo")));
+    [Fact] public void SetOneBadAmongGood() => Assert.NotNull(AliasValidator.ValidateSets(Alias("a", ":set foo a", ":set bar b"), Defined("foo")));
+    [Fact] public void SetNonSetLinesIgnored() => Assert.Null(AliasValidator.ValidateSets(Alias("a", "/say hi"), Defined()));
 }

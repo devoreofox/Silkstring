@@ -9,11 +9,27 @@ public class BlockInterpreterTests
     [InlineData(":endif", "EndIf", "")]
     [InlineData("/say hi", "Command", "/say hi")]
     [InlineData(":ifx", "Command", ":ifx")]
+    [InlineData(":set foo bar", "Set", "foo bar")]
+    [InlineData(":SET foo bar", "Set", "foo bar")]
+    [InlineData(":set", "Command", ":set")]
     public void Classifies(string line, string kind, string expression)
     {
         var (k, e) = BlockInterpreter.Classify(line);
         Assert.Equal(kind, k.ToString());
         Assert.Equal(expression, e);
+    }
+
+    [Theory]
+    [InlineData("foo bar", "foo", "bar")]
+    [InlineData("foo", "foo", "")]
+    [InlineData("foo   bar baz", "foo", "bar baz")]
+    [InlineData("  foo   bar  ", "foo", "bar")]
+    [InlineData("greet hi {0}", "greet", "hi {0}")]
+    public void ParsesSet(string expression, string name, string value)
+    {
+        var (n, v) = BlockInterpreter.ParseSet(expression);
+        Assert.Equal(name, n);
+        Assert.Equal(value, v);
     }
 
     [Fact]

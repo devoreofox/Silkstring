@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Dalamud.Game.Command;
 using Dalamud.Interface.ImGuiNotification;
@@ -33,6 +34,7 @@ public sealed class Plugin : IDalamudPlugin
     public readonly WindowSystem WindowSystem = new("Silkstring");
     private ConfigWindow ConfigWindow { get; init; }
     private MainWindow MainWindow { get; init; }
+    private VariablesWindow VariablesWindow { get; init; }
     private HelpWindow HelpWindow { get; init; }
     private ChangelogWindow ChangelogWindow { get; init; }
 
@@ -60,24 +62,30 @@ public sealed class Plugin : IDalamudPlugin
 
         ECommonsMain.Init(PluginInterface, this);
 
-        IVariableProvider[] providers =
-            [
-                new PlayerVariableProvider(PlayerState),
-                new VitalsVariablesProvider(ClientState),
-                new CombatVariablesProvider(Condition, TargetManager),
-                new CurrencyVariablesProvider()
-            ];
+        IVariableProvider[] builtIn =
+        [
+            new PlayerVariableProvider(PlayerState),
+            new VitalsVariablesProvider(ClientState),
+            new CombatVariablesProvider(Condition, TargetManager),
+            new CurrencyVariablesProvider(),
+        ];
+
+        var reserved = builtIn.SelectMany(p => p.GetVariables()).Select(v => v.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var store = new UserVariableStore(Configuration.UserVariables, reserved, Configuration.MarkDirty);
+        IVariableProvider[] providers = [..builtIn, new UserVariableProvider(() => store.Variables)];
 
         _commandResolver = new CommandResolver(providers);
-        _commandHandler = new CommandHandler(_commandResolver, Framework);
+        _commandHandler = new CommandHandler(_commandResolver, Framework, store.TrySet);
         _chatInterceptor = new ChatInterceptor(GameInteropProvider, Framework, Configuration, _commandHandler);
 
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi, ToggleChangelogUi);
+        VariablesWindow = new VariablesWindow(store, _commandResolver);
         HelpWindow = new HelpWindow(_commandResolver);
         ChangelogWindow = new ChangelogWindow();
 
         WindowSystem.AddWindow(MainWindow);
+        WindowSystem.AddWindow(VariablesWindow);
         WindowSystem.AddWindow(ConfigWindow);
         WindowSystem.AddWindow(HelpWindow);
         WindowSystem.AddWindow(ChangelogWindow);
@@ -86,6 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             HelpMessage = "/silkstring → Open the Silkstring alias manager.\n" +
                           "/silkstring help → Open the Silkstring help window.\n" +
+                          "/silkstring variables → Open the Silkstring variables window.\n" +
                           "/silkstring changelog → Open the Silkstring changelog window."
         });
 
@@ -116,6 +125,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.RemoveAllWindows();
 
         MainWindow.Dispose();
+        VariablesWindow.Dispose();
         ConfigWindow.Dispose();
         HelpWindow.Dispose();
         ChangelogWindow.Dispose();
@@ -129,6 +139,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             case "help": ToggleHelpUi(); break;
             case "changelog": ToggleChangelogUi(); break;
+            case "variables": ToggleVariablesUi(); break;
             default: MainWindow.Toggle(); break;
         }
     }
@@ -140,6 +151,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void ToggleConfigUi() => ConfigWindow.Toggle();
     public void ToggleMainUi() => MainWindow.Toggle();
+    public void ToggleVariablesUi() => VariablesWindow.Toggle();
     public void ToggleHelpUi() => HelpWindow.Toggle();
     public void ToggleChangelogUi() => ChangelogWindow.Toggle();
 }

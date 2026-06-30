@@ -26,6 +26,7 @@ public class Configuration : IPluginConfiguration
     public int Version { get; set; } = CurrentVersion;
     public List<AliasFolder> Folders = new();
     public List<AliasEntry> Aliases = new();
+    public List<UserVariable> UserVariables = new();
     public bool MultilineCommands { get; set; }
 
     public void Save()

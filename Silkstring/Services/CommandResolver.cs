@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Serilog;
@@ -9,12 +10,17 @@ namespace Silkstring.Services;
 
 public class CommandResolver
 {
-    private readonly Dictionary<string, VariableDescriptor> _variables;
+    private readonly IVariableProvider[] _providers;
+    private Dictionary<string, VariableDescriptor> _variables;
 
     public CommandResolver(IEnumerable<IVariableProvider> providers)
     {
-        _variables = providers.SelectMany(p => p.GetVariables()).ToDictionary(v => v.Name, StringComparer.OrdinalIgnoreCase);
+        _providers = providers.ToArray();
+        Refresh();
     }
+
+    [MemberNotNull(nameof(_variables))]
+    public void Refresh() => _variables = _providers.SelectMany(p => p.GetVariables()).ToDictionary(v => v.Name, StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyCollection<VariableDescriptor> Variables => _variables.Values;
 
