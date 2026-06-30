@@ -65,7 +65,8 @@ public sealed class Plugin : IDalamudPlugin
                 new PlayerVariableProvider(PlayerState),
                 new VitalsVariablesProvider(ClientState),
                 new CombatVariablesProvider(Condition, TargetManager),
-                new CurrencyVariablesProvider()
+                new CurrencyVariablesProvider(),
+                new UserVariableProvider(() => Configuration.UserVariables),
             ];
 
         _commandResolver = new CommandResolver(providers);
