@@ -14,12 +14,13 @@ public class CommandHandler
     private readonly IFramework _framework;
     private readonly CommandResolver _resolver;
     private readonly ConditionEvaluator _conditions;
-
-    public CommandHandler(CommandResolver resolver, IFramework framework)
+    private readonly Func<string, string, bool> _setUserVariable;
+    public CommandHandler(CommandResolver resolver, IFramework framework, Func<string, string, bool> setUserVariable)
     {
         _resolver = resolver;
         _framework = framework;
         _conditions = new ConditionEvaluator(_resolver.Resolve);
+        _setUserVariable = setUserVariable;
     }
 
     public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null)
@@ -40,6 +41,20 @@ public class CommandHandler
 
             if (kind == BlockKind.Else) { blocks.Else(); continue; }
             if (kind == BlockKind.EndIf) { blocks.EndIf(); continue; }
+
+            if (kind == BlockKind.Set)
+            {
+                if (blocks.Active)
+                {
+                    var (name, rawValue) = BlockInterpreter.ParseSet(expression);
+                    await _framework.RunOnFrameworkThread(() =>
+                    {
+                        if (!_setUserVariable(name, _resolver.Resolve(rawValue, args)))
+                            Log.Warning("Unknown user variable in :set: {Name}", name);
+                    });
+                }
+                continue;
+            }
 
             if (!blocks.Active) continue;
 

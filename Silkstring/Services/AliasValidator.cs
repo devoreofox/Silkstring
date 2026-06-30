@@ -46,6 +46,19 @@ public static class AliasValidator
         return elseSeen.Count > 0 ? "Unclosed :if (missing :endif)" : null;
     }
 
+    public static string? ValidateSets(AliasEntry alias, ISet<string> defined)
+    {
+        foreach (var command in alias.Output)
+        {
+            var (kind, expression) = BlockInterpreter.Classify(command.Command);
+            if (kind != BlockKind.Set) continue;
+            var (name, _) = BlockInterpreter.ParseSet(expression);
+            if (string.IsNullOrEmpty(name)) return ":set needs a variable name";
+            if (!defined.Contains(name)) return $"Unknown variable in :set: {name}";
+        }
+        return null;
+    }
+
     private static Dictionary<string, AliasEntry> BuildTriggerLookup(IEnumerable<AliasEntry> allAliases)
     {
         var lookup = new Dictionary<string, AliasEntry>(StringComparer.OrdinalIgnoreCase);
