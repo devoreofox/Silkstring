@@ -47,7 +47,7 @@ public class AliasEditPanel
         ImGui.Separator();
         if (_blockError != null)
         {
-            ImGui.TextColored(new Vector4(1f, 0.4f, 0.4f, 1f), _blockError);
+            ImGui.TextColored(Palette.Error, _blockError);
             ImGui.Spacing();
         }
         DrawCommandList(alias);

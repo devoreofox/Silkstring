@@ -5,13 +5,12 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using Silkstring.Services;
+using Silkstring.UI;
 
 namespace Silkstring.Windows;
 
 public class ChangelogWindow : Window, IDisposable
 {
-    private static readonly Vector4 HeadingColor = new(0.7f, 0.5f, 1.0f, 1.0f);
-
     private readonly IReadOnlyList<ChangelogSection> _sections;
     private readonly string[] _versions;
     private int _selected;
@@ -63,7 +62,7 @@ public class ChangelogWindow : Window, IDisposable
             else if (line.StartsWith("### "))
             {
                 ImGui.Spacing();
-                ImGui.TextColored(HeadingColor, line[4..]);
+                ImGui.TextColored(Palette.Heading, line[4..]);
                 ImGui.Separator();
             }
             else if (line.StartsWith("  - "))
