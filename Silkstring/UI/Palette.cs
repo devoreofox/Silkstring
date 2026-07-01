@@ -15,6 +15,7 @@ public static class Palette
     public static Vector4 Heading;
     public static Vector4 Folder;
     public static Vector4 Success;
+    public static Vector4 LineNumber;
 
     public static void Apply(ThemeColors t)
     {
@@ -28,5 +29,6 @@ public static class Palette
         Heading = t.Heading;
         Folder = t.Folder;
         Success = t.Success;
+        LineNumber = t.LineNumber;
     }
 }

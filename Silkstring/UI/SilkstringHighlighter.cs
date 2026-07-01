@@ -146,6 +146,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         r.SetColor(PaletteIndex.Number, U32(Palette.Parameter));
         r.SetColor(PaletteIndex.String, U32(Palette.String));
         r.SetColor(PaletteIndex.CharLiteral, U32(Palette.Error));
+        r.SetColor(PaletteIndex.LineNumber, U32(Palette.LineNumber));
     }
 
     private static uint U32(Vector4 c) => ImGui.ColorConvertFloat4ToU32(c);
