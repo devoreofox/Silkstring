@@ -5,28 +5,28 @@ namespace Silkstring.UI;
 
 public static class Palette
 {
+    public static Vector4 Variable;
+    public static Vector4 Parameter;
+    public static Vector4 Keyword;
+    public static Vector4 String;
+    public static Vector4 Command;
+    public static Vector4 Text;
+    public static Vector4 Error;
     public static Vector4 Heading;
     public static Vector4 Folder;
-    public static Vector4 Error;
     public static Vector4 Success;
-    public static Vector4 VariableToken;
-    public static Vector4 ParameterToken;
-    public static Vector4 ControlKeyword;
-    public static Vector4 Command;
-    public static Vector4 Operator;
-    public static Vector4 ChatText;
 
     public static void Apply(ThemeColors t)
     {
+        Variable = t.Variable;
+        Parameter = t.Parameter;
+        Keyword = t.Keyword;
+        String = t.String;
+        Command = t.Command;
+        Text = t.Text;
+        Error = t.Error;
         Heading = t.Heading;
         Folder = t.Folder;
-        Error = t.Error;
         Success = t.Success;
-        VariableToken = t.VariableToken;
-        ParameterToken = t.ParameterToken;
-        ControlKeyword = t.ControlKeyword;
-        Command = t.Command;
-        Operator = t.Operator;
-        ChatText = t.ChatText;
     }
 }

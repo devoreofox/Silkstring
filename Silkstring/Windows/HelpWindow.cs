@@ -266,7 +266,7 @@ public class HelpWindow : Window, IDisposable
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextColored(Palette.VariableToken, variable);
+        ImGui.TextColored(Palette.Variable, variable);
 
         ImGui.TableNextColumn();
         ImGui.TextWrapped(description);
