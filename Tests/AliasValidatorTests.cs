@@ -62,4 +62,13 @@ public class AliasValidatorTests
     [Fact] public void SetNoName() => Assert.NotNull(AliasValidator.ValidateSets(Alias("a", ":set "), Defined("foo")));
     [Fact] public void SetOneBadAmongGood() => Assert.NotNull(AliasValidator.ValidateSets(Alias("a", ":set foo a", ":set bar b"), Defined("foo")));
     [Fact] public void SetNonSetLinesIgnored() => Assert.Null(AliasValidator.ValidateSets(Alias("a", "/say hi"), Defined()));
+
+    [Fact] public void WaitValid() => Assert.Null(AliasValidator.ValidateWaits(Alias("a", ":wait 2")));
+    [Fact] public void WaitDecimal() => Assert.Null(AliasValidator.ValidateWaits(Alias("a", ":wait 1.5")));
+    [Fact] public void WaitToken() => Assert.Null(AliasValidator.ValidateWaits(Alias("a", ":wait {0}")));
+    [Fact] public void WaitOverCapIsValid() => Assert.Null(AliasValidator.ValidateWaits(Alias("a", ":wait 120")));
+    [Fact] public void WaitInvalid() => Assert.NotNull(AliasValidator.ValidateWaits(Alias("a", ":wait potato")));
+    [Fact] public void WaitNegative() => Assert.NotNull(AliasValidator.ValidateWaits(Alias("a", ":wait -1")));
+    [Fact] public void WaitEmpty() => Assert.NotNull(AliasValidator.ValidateWaits(Alias("a", ":wait ")));
+    [Fact] public void WaitNonWaitLinesIgnored() => Assert.Null(AliasValidator.ValidateWaits(Alias("a", "/say hi")));
 }

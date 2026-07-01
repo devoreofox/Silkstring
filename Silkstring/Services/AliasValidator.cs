@@ -42,7 +42,6 @@ public static class AliasValidator
                     break;
             }
         }
-
         return elseSeen.Count > 0 ? "Unclosed :if (missing :endif)" : null;
     }
 
@@ -59,16 +58,27 @@ public static class AliasValidator
         return null;
     }
 
+    public static string? ValidateWaits(AliasEntry alias)
+    {
+        foreach (var command in alias.Output)
+        {
+            var (kind, expression) = BlockInterpreter.Classify(command.Command);
+            if (kind != BlockKind.Wait) continue;
+            var (value, _) = BlockInterpreter.ParseSet(expression);
+            if (string.IsNullOrEmpty(value)) return ":wait needs a duration";
+            if (expression.Contains('{')) continue;
+            if (!BlockInterpreter.TryParseDuration(expression, out _)) return $"Invalid :wait duration: {expression}";
+        }
+        return null;
+    }
+
     private static Dictionary<string, AliasEntry> BuildTriggerLookup(IEnumerable<AliasEntry> allAliases)
     {
         var lookup = new Dictionary<string, AliasEntry>(StringComparer.OrdinalIgnoreCase);
         foreach (var alias in allAliases)
         {
             var triggers = alias.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-            foreach (var trigger in triggers)
-            {
-                lookup.TryAdd(trigger, alias);
-            }
+            foreach (var trigger in triggers) lookup.TryAdd(trigger, alias);
         }
         return lookup;
     }
@@ -113,7 +123,6 @@ public static class AliasValidator
                 if (result.Count > 0) return result;
             }
         }
-
         path.Remove(trigger);
         visited.Add(trigger);
         return new List<string>();
