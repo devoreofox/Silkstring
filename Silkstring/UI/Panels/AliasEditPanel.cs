@@ -155,7 +155,7 @@ public class AliasEditPanel
         if (_selectedAlias == null) return;
         _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
         var defined = new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase);
-        _blockError = AliasValidator.ValidateBlocks(_selectedAlias) ?? AliasValidator.ValidateSets(_selectedAlias, defined);
+        _blockError = AliasValidator.ValidateBlocks(_selectedAlias) ?? AliasValidator.ValidateSets(_selectedAlias, defined) ?? AliasValidator.ValidateWaits(_selectedAlias);
     }
 
     private void SyncMultilineBuffer(AliasEntry alias)

@@ -12,6 +12,9 @@ public class BlockInterpreterTests
     [InlineData(":set foo bar", "Set", "foo bar")]
     [InlineData(":SET foo bar", "Set", "foo bar")]
     [InlineData(":set", "Command", ":set")]
+    [InlineData(":wait 2", "Wait", "2")]
+    [InlineData(":WAIT 1.5", "Wait", "1.5")]
+    [InlineData(":wait", "Command", ":wait")]
     public void Classifies(string line, string kind, string expression)
     {
         var (k, e) = BlockInterpreter.Classify(line);
@@ -30,6 +33,21 @@ public class BlockInterpreterTests
         var (n, v) = BlockInterpreter.ParseSet(expression);
         Assert.Equal(name, n);
         Assert.Equal(value, v);
+    }
+
+    [Theory]
+    [InlineData("2", true, 2000)]
+    [InlineData("1.5", true, 1500)]
+    [InlineData("0", true, 0)]
+    [InlineData("120", true, 60000)]
+    [InlineData("-1", false, 0)]
+    [InlineData("abc", false, 0)]
+    [InlineData("{0}", false, 0)]
+    [InlineData("", false, 0)]
+    public void ParsesDuration(string text, bool expected, int milliseconds)
+    {
+        Assert.Equal(expected, BlockInterpreter.TryParseDuration(text, out var ms));
+        Assert.Equal(milliseconds, ms);
     }
 
     [Fact]

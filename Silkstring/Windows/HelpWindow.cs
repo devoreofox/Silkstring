@@ -178,7 +178,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextColored(HeadingColor, "Conditionals");
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks. See the Conditionals tab.");
+        ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks, and pause with :wait. See the Conditionals tab.");
         ImGui.Spacing();
 
         ImGui.TextColored(HeadingColor, "Macros");
@@ -362,6 +362,18 @@ public class HelpWindow : Window, IDisposable
         ImGui.Spacing();
         ImGui.Indent();
         ImGui.TextDisabled(":if {0} == on");
+        ImGui.Unindent();
+        ImGui.Spacing();
+
+        ImGui.TextColored(HeadingColor, "Waits");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Pause between lines with :wait, followed by a number of seconds. Decimals work, and the duration can come from a variable or parameter. Waits are capped at 60 seconds, and a :wait inside a condition only pauses when that branch runs. Like the other control lines, it is never sent to chat.");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled("/ac Raise");
+        ImGui.TextDisabled(":wait 2");
+        ImGui.TextDisabled("/say Up you get!");
         ImGui.Unindent();
         ImGui.Spacing();
     }

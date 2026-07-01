@@ -56,6 +56,19 @@ public class CommandHandler
                 continue;
             }
 
+            if (kind == BlockKind.Wait)
+            {
+                if (blocks.Active)
+                {
+                    var resolved = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(expression, args));
+                    if (BlockInterpreter.TryParseDuration(resolved, out var ms))
+                        await Task.Delay(ms, cancellationToken);
+                    else
+                        Log.Warning("Invalid :wait duration: {Duration}", resolved);
+                }
+                continue;
+            }
+
             if (!blocks.Active) continue;
 
             var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(line, args));
