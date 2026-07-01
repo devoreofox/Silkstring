@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Silkstring.Services.Conditions;
 
@@ -9,7 +10,8 @@ internal enum BlockKind
     If,
     Else,
     EndIf,
-    Set
+    Set,
+    Wait
 }
 
 internal sealed class BlockInterpreter
@@ -23,6 +25,7 @@ internal sealed class BlockInterpreter
         if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
         if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
         if (line.StartsWith(":set ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Set, line[5..]);
+        if (line.StartsWith(":wait ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Wait, line[6..]);
         return (BlockKind.Command, line);
     }
 
@@ -31,6 +34,15 @@ internal sealed class BlockInterpreter
         var trimmed = expression.Trim();
         var space = trimmed.IndexOf(' ');
         return space < 0 ? (trimmed, "") : (trimmed[..space], trimmed[(space + 1)..].Trim());
+    }
+
+    public static bool TryParseDuration(string text, out int milliseconds)
+    {
+        milliseconds = 0;
+        if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds) || seconds < 0)
+            return false;
+        milliseconds = (int)Math.Min(seconds * 1000, 60000);
+        return true;
     }
 
     public void EnterIf(bool conditionMet)
