@@ -1,13 +1,32 @@
 using System.Numerics;
+using Silkstring.Models;
 
 namespace Silkstring.UI;
 
 public static class Palette
 {
-    public static readonly Vector4 Heading = new(0.7f, 0.5f, 1.0f, 1.0f);
-    public static readonly Vector4 Folder = new(0.7f, 0.5f, 1.0f, 1.0f);
-    public static readonly Vector4 Error = new(1.0f, 0.4f, 0.4f, 1.0f);
-    public static readonly Vector4 Success = new(0.4f, 1.0f, 0.4f, 1.0f);
+    public static Vector4 Heading;
+    public static Vector4 Folder;
+    public static Vector4 Error;
+    public static Vector4 Success;
+    public static Vector4 VariableToken;
+    public static Vector4 ParameterToken;
+    public static Vector4 ControlKeyword;
+    public static Vector4 Command;
+    public static Vector4 Operator;
+    public static Vector4 ChatText;
 
-    public static readonly Vector4 VariableToken = new(0.4f, 0.8f, 1.0f, 1.0f);
+    public static void Apply(ThemeColors t)
+    {
+        Heading = t.Heading;
+        Folder = t.Folder;
+        Error = t.Error;
+        Success = t.Success;
+        VariableToken = t.VariableToken;
+        ParameterToken = t.ParameterToken;
+        ControlKeyword = t.ControlKeyword;
+        Command = t.Command;
+        Operator = t.Operator;
+        ChatText = t.ChatText;
+    }
 }

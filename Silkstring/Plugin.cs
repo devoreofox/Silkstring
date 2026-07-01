@@ -11,6 +11,7 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using Silkstring.Services;
 using Silkstring.Services.Variables;
+using Silkstring.UI;
 using Silkstring.Windows;
 
 namespace Silkstring;
@@ -45,6 +46,7 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Palette.Apply(Configuration.Theme);
 
         var migration = ConfigMigrator.Migrate(Configuration, PluginInterface);
         if (migration != null)
@@ -140,6 +142,7 @@ public sealed class Plugin : IDalamudPlugin
             case "help": ToggleHelpUi(); break;
             case "changelog": ToggleChangelogUi(); break;
             case "variables": ToggleVariablesUi(); break;
+            case "edit": ToggleConfigUi(); break;
             default: MainWindow.Toggle(); break;
         }
     }
