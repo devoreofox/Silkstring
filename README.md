@@ -135,6 +135,16 @@ A condition compares values with `==`, `!=`, `<`, `>`, `<=`, `>=`, and you can c
 
 Text comparisons are case-insensitive, and numbers compare as numbers. The `:if`, `:else`, and `:endif` lines are never sent to chat, and the alias editor warns you if a block is left open or a condition cannot be understood.
 
+You can also pause between lines with `:wait`, followed by a number of seconds:
+
+```
+/ac Raise
+:wait 2
+/say Up you get!
+```
+
+The wait accepts decimals (`:wait 1.5`) and can take its duration from a variable or parameter (`:wait {0}`). Waits are capped at 60 seconds, and a `:wait` inside a condition only pauses when that branch actually runs. Like the other control lines, `:wait` is never sent to chat, and the editor warns you if a duration is invalid.
+
 ### User Variables
 
 Alongside the built-in variables, you can define your own. Open the Variables window with `/silkstring variables`, type a name, and give it a value. Names can use letters, numbers, and underscores, and cannot reuse a built-in variable name.

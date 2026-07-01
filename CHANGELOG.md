@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0.0 - TBD
+### Added
+- Waits: add a `:wait` line to pause an alias for a set number of seconds before the next line, for example `:wait 2`. Decimals work too, like `:wait 1.5`
+- A `:wait` can take its duration from a variable or parameter, such as `:wait {0}`, and is capped at 60 seconds
+- The alias editor warns you when a `:wait` has an invalid duration
+
 ## v1.3.0.0 - 2026-06-30
 ### Added
 - Your own variables: create variables in the new Variables window (open it with `/silkstring variables`), give each one a value, and use it in any alias with `{name}`, just like the built-in ones
