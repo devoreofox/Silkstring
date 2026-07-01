@@ -1,6 +1,10 @@
 # Changelog
 
-## v1.4.0.0 - TBD
+## v1.4.1.0 - 2026-07-01
+### Fixed
+- Removed TBD and dated changelog (oops)
+
+## v1.4.0.0 - 2026-07-01
 ### Added
 - Waits: add a `:wait` line to pause an alias for a set number of seconds before the next line, for example `:wait 2`. Decimals work too, like `:wait 1.5`
 - A `:wait` can take its duration from a variable or parameter, such as `:wait {0}`, and is capped at 60 seconds
