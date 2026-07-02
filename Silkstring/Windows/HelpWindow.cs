@@ -21,8 +21,7 @@ public class HelpWindow : Window, IDisposable
     }
 
     private Tab _selectedTab = Tab.Commands;
-
-    private static readonly Vector4 HeadingColor = new(0.7f, 0.5f, 1.0f, 1.0f);
+    
     private string _testerInput = string.Empty;
     private readonly CommandResolver _resolver;
 
@@ -78,7 +77,7 @@ public class HelpWindow : Window, IDisposable
 
     private void DrawCommandTester()
     {
-        ImGui.TextColored(HeadingColor, "Command Tester");
+        ImGui.TextColored(Palette.Heading, "Command Tester");
         ImGui.Spacing();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextWithHint("###testerInput", "Enter a command e.g. /say Hello {character}!", ref _testerInput, 200);
@@ -94,19 +93,19 @@ public class HelpWindow : Window, IDisposable
         else if (resolved == _testerInput)
             ImGui.TextDisabled(resolved);
         else
-            ImGui.TextColored(new Vector4(0.4f, 1f, 0.4f, 1f), resolved);
+            ImGui.TextColored(Palette.Success, resolved);
     }
 
     private void DrawCommandsHelp()
     {
-        ImGui.TextColored(HeadingColor, "What is an Alias?");
+        ImGui.TextColored(Palette.Heading, "What is an Alias?");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("An alias lets you create a custom chat command that fires one or more FFXIV commands in sequence. " +
                           "Type your trigger in the chat box just like any other command and Silkstring will intercept it and execute your defined command list.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Triggers");
+        ImGui.TextColored(Palette.Heading, "Triggers");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("A trigger is the command you type in chat to activate the alias. Triggers must start with a forward slash when used in chat, " +
@@ -115,7 +114,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.BulletText("Triggers cannot contain spaces.");
         ImGui.BulletText("Triggers should not conflict with built-in FFXIV or Dalamud commands.");
         ImGui.Spacing();
-        ImGui.TextColored(HeadingColor, "Multiple Triggers");
+        ImGui.TextColored(Palette.Heading, "Multiple Triggers");
         ImGui.Spacing();
         ImGui.TextWrapped("You can assign multiple triggers to a single alias by separating them with a pipe character:");
         ImGui.Spacing();
@@ -126,7 +125,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("Any of these typed in chat will fire the same alias.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Commands");
+        ImGui.TextColored(Palette.Heading, "Commands");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Commands are the actions Silkstring runs when your alias is triggered. Each command must start with a slash, exactly as you would type it into the chat box.");
@@ -142,7 +141,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.Unindent();
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Chat Messages");
+        ImGui.TextColored(Palette.Heading, "Chat Messages");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Any line that does not start with a slash is sent as a chat message to whatever channel you currently have active.");
@@ -156,7 +155,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.Unindent();
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Variables");
+        ImGui.TextColored(Palette.Heading, "Variables");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Variables let you insert dynamic values into your commands at execution time using curly brace syntax:");
@@ -169,19 +168,19 @@ public class HelpWindow : Window, IDisposable
                           "See the Variables tab for a full list of supported variables.");
         ImGui.TextWrapped("You can also define your own variables, see the Variables tab.");
 
-        ImGui.TextColored(HeadingColor, "Parameters");
+        ImGui.TextColored(Palette.Heading, "Parameters");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Aliases can take arguments typed after the trigger, inserted with numbered braces like {0}. See the Parameters tab for the full syntax.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Conditionals");
+        ImGui.TextColored(Palette.Heading, "Conditionals");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks, and pause with :wait. See the Conditionals tab.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Macros");
+        ImGui.TextColored(Palette.Heading, "Macros");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Silkstring aliases are intentionally disabled when called from within FFXIV macros. " +
@@ -189,7 +188,7 @@ public class HelpWindow : Window, IDisposable
                           "Aliases must be typed directly into the chat box to function.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Cycles & Recursion");
+        ImGui.TextColored(Palette.Heading, "Cycles & Recursion");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("A cycle occurs when an alias triggers itself either directly or through a chain of other aliases:");
@@ -207,7 +206,7 @@ public class HelpWindow : Window, IDisposable
 
     private void DrawVariablesHelp()
     {
-        ImGui.TextColored(HeadingColor, "What are Variables?");
+        ImGui.TextColored(Palette.Heading, "What are Variables?");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Variables let you insert dynamic values into your commands at execution time. " +
@@ -223,7 +222,7 @@ public class HelpWindow : Window, IDisposable
                           "it is left as-is in the command string rather than being replaced with an empty value.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Your Own Variables");
+        ImGui.TextColored(Palette.Heading, "Your Own Variables");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Besides the built-in variables below, you can define your own. Open the Variables window with /silkstring variables, give it a name and a value, then use it anywhere with {name}.");
@@ -238,7 +237,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("A :set only works on a variable you have already created. The alias editor warns you if it names one that does not exist.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Available Variables");
+        ImGui.TextColored(Palette.Heading, "Available Variables");
         ImGui.Separator();
         ImGui.Spacing();
 
@@ -250,7 +249,7 @@ public class HelpWindow : Window, IDisposable
 
     private void DrawVariableCategory(string category, IEnumerable<VariableDescriptor> variables)
     {
-        ImGui.TextColored(HeadingColor, category);
+        ImGui.TextColored(Palette.Heading, category);
         if (ImGui.BeginTable($"###varTable_{category}", 3, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersOuter))
         {
             ImGui.TableSetupColumn("Variable", ImGuiTableColumnFlags.WidthFixed, 120);
@@ -267,7 +266,7 @@ public class HelpWindow : Window, IDisposable
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextColored(Palette.VariableToken, variable);
+        ImGui.TextColored(Palette.Variable, variable);
 
         ImGui.TableNextColumn();
         ImGui.TextWrapped(description);
@@ -277,7 +276,7 @@ public class HelpWindow : Window, IDisposable
 
     private void DrawParametersHelp()
     {
-        ImGui.TextColored(HeadingColor, "What are Parameters?");
+        ImGui.TextColored(Palette.Heading, "What are Parameters?");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Parameters let an alias take arguments. Anything you type after the trigger becomes a numbered argument, starting at zero, that you insert into command lines with curly braces.");
@@ -293,7 +292,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("If you reference an argument that was not supplied, it is left as written (for example {3} stays {3}).");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Parameter Tokens");
+        ImGui.TextColored(Palette.Heading, "Parameter Tokens");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Ranges work like C# ranges: the end is exclusive.");
@@ -326,7 +325,7 @@ public class HelpWindow : Window, IDisposable
 
     private void DrawConditionalsHelp()
     {
-        ImGui.TextColored(HeadingColor, "What are Conditionals?");
+        ImGui.TextColored(Palette.Heading, "What are Conditionals?");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Conditionals let an alias run some commands only when a condition is true. They use block syntax: everything between :if and :endif runs only when the condition holds.");
@@ -345,7 +344,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.BulletText("The :if, :else, and :endif lines are never sent to chat.");
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Conditions");
+        ImGui.TextColored(Palette.Heading, "Conditions");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("A condition either compares two values, or checks a true/false variable on its own. Comparisons can be combined with and (&&) and or (||).");
@@ -365,7 +364,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.Unindent();
         ImGui.Spacing();
 
-        ImGui.TextColored(HeadingColor, "Waits");
+        ImGui.TextColored(Palette.Heading, "Waits");
         ImGui.Separator();
         ImGui.Spacing();
         ImGui.TextWrapped("Pause between lines with :wait, followed by a number of seconds. Decimals work, and the duration can come from a variable or parameter. Waits are capped at 60 seconds, and a :wait inside a condition only pauses when that branch runs. Like the other control lines, it is never sent to chat.");

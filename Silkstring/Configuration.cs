@@ -24,9 +24,13 @@ public class Configuration : IPluginConfiguration
     public const int CurrentVersion = 2;
     public string? LastSeenVersion { get; set; }
     public int Version { get; set; } = CurrentVersion;
+
     public List<AliasFolder> Folders = new();
     public List<AliasEntry> Aliases = new();
     public List<UserVariable> UserVariables = new();
+
+    public ThemeColors Theme = new();
+    public bool ShowLineNumbers = true;
     public bool MultilineCommands { get; set; }
 
     public void Save()

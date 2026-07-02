@@ -58,7 +58,7 @@ public class VariablesWindow : Window, IDisposable
             }
         }
         ImGuiUtil.Tooltip("Add Variable");
-        if (_addError != null) ImGui.TextColored(new Vector4(1f, 0.4f, 0.4f, 1f), _addError);
+        if (_addError != null) ImGui.TextColored(Palette.Error, _addError);
     }
 
     private void DrawList()

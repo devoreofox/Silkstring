@@ -23,6 +23,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\extern\DalamudTextEdit\DalamudTextEdit.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <InternalsVisibleTo Include="Tests" />
     </ItemGroup>
 </Project>

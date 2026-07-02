@@ -24,8 +24,6 @@ public class AliasSelectPanel
 
     private const string DragDropType = "ALIAS";
 
-    private static readonly Vector4 FolderColor = new(0.7f, 0.5f, 1.0f, 1.0f);
-
     public AliasSelectPanel(Configuration configuration, MainWindow mainWindow)
     {
         _configuration = configuration;
@@ -86,7 +84,7 @@ public class AliasSelectPanel
             }
             else
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, FolderColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, Palette.Folder);
                 open = ImGui.TreeNodeEx($"{folder.Name}###{folder.UniqueId}folder",
                                         ImGuiTreeNodeFlags.SpanAvailWidth);
                 ImGui.PopStyleColor();

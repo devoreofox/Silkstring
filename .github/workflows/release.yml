@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Extract version from tag
         id: version
         shell: bash
@@ -58,6 +60,7 @@ jobs:
             "$output/Silkstring.dll",
             "$output/Silkstring.json",
             "$output/ECommons.dll",
+            "$output/DalamudTextEdit.dll",
             "$output/Silkstring.deps.json",
             "$output/images",
             "$output/Silkstring"

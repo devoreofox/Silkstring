@@ -5,6 +5,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using ImGuiColorTextEditNet;
 using Silkstring.Models;
 using Silkstring.Services;
 using Silkstring.Windows;
@@ -19,18 +20,23 @@ public class AliasEditPanel
     private List<string>? _detectedCycle;
     private string? _blockError;
 
-    private string _multilineBuffer = string.Empty;
-    private int _multilineAliasId = -1;
+    private readonly TextEditor _editor;
+    private int _editorAliasId = -1;
 
     public AliasEditPanel(Configuration configuration, MainWindow mainWindow)
     {
+        _configuration = configuration;
+        _editor = new TextEditor
+        {
+            SyntaxHighlighter = new SilkstringHighlighter(() => new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase))
+        };
+        _editor.Renderer.ColorizeEveryFrame = true;
         mainWindow.SelectionChanged += (alias, _) =>
         {
             _selectedAlias = alias;
             if (alias != null) RefreshCycleCheck();
             else { _detectedCycle = null; _blockError = null; }
         };
-        _configuration = configuration;
     }
 
     public void Draw()
@@ -47,7 +53,7 @@ public class AliasEditPanel
         ImGui.Separator();
         if (_blockError != null)
         {
-            ImGui.TextColored(new Vector4(1f, 0.4f, 0.4f, 1f), _blockError);
+            ImGui.TextColored(Palette.Error, _blockError);
             ImGui.Spacing();
         }
         DrawCommandList(alias);
@@ -95,21 +101,20 @@ public class AliasEditPanel
 
     private void DrawMultilineView(AliasEntry alias)
     {
-        SyncMultilineBuffer(alias);
-
-        if (ImGui.InputTextMultiline($"###multiline{alias.UniqueId}", ref _multilineBuffer, 5000, new Vector2(-1, ImGui.GetContentRegionAvail().Y)))
+        if (_editorAliasId != alias.UniqueId)
         {
-            if (ImGui.IsKeyPressed(ImGuiKey.Escape))
-            {
-                _multilineAliasId = -1;
-            }
+            _editor.AllText = string.Join("\n", alias.Output.Select(c => c.Command));
+            _editorAliasId = alias.UniqueId;
+        }
 
-            else
-            {
-                ApplyMultiline(alias, _multilineBuffer);
-                _configuration.MarkDirty();
-                RefreshCycleCheck();
-            }
+        _editor.Renderer.ShowLineNumbers = _configuration.ShowLineNumbers;
+        SilkstringHighlighter.ApplyPalette(_editor);
+
+        if (_editor.Render("###aliasEditor", new Vector2(-1, ImGui.GetContentRegionAvail().Y)))
+        {
+            ApplyMultiline(alias, _editor.AllText);
+            _configuration.MarkDirty();
+            RefreshCycleCheck();
         }
     }
 
@@ -156,13 +161,6 @@ public class AliasEditPanel
         _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
         var defined = new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase);
         _blockError = AliasValidator.ValidateBlocks(_selectedAlias) ?? AliasValidator.ValidateSets(_selectedAlias, defined) ?? AliasValidator.ValidateWaits(_selectedAlias);
-    }
-
-    private void SyncMultilineBuffer(AliasEntry alias)
-    {
-        if (_multilineAliasId == alias.UniqueId) return;
-        _multilineBuffer = string.Join("\n", alias.Output.Select(c => c.Command));
-        _multilineAliasId = alias.UniqueId;
     }
 
     private static void ApplyMultiline(AliasEntry alias, string text)

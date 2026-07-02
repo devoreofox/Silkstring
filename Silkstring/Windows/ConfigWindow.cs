@@ -1,13 +1,23 @@
 using System;
 using Dalamud.Interface.Windowing;
 using System.Numerics;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Silkstring.Models;
+using Silkstring.UI;
 
 namespace Silkstring.Windows;
+
 
 public class ConfigWindow : Window, IDisposable
 {
     private readonly Configuration configuration;
+    private static readonly FieldInfo[] ThemeFields = typeof(ThemeColors).GetFields();
+    private static readonly ThemeColors Defaults = new();
+    private static string Prettify(string name) => Regex.Replace(name, "(\\B[A-Z])", " $1");
 
     public ConfigWindow(Plugin plugin) : base("Silkstring Settings###Config")
     {
@@ -48,6 +58,45 @@ public class ConfigWindow : Window, IDisposable
         {
             configuration.MultilineCommands = multiline;
             configuration.Save();
+        }
+
+        var showLineNumbers = configuration.ShowLineNumbers;
+        if (ImGui.Checkbox("Line numbers in the editor", ref showLineNumbers))
+        {
+            configuration.ShowLineNumbers = showLineNumbers;
+            configuration.Save();
+        }
+
+        if (ImGui.CollapsingHeader("Colors"))
+        {
+            void Sync() { Palette.Apply(configuration.Theme); configuration.MarkDirty(); }
+
+            foreach (var field in ThemeFields)
+            {
+                if (ImGuiComponents.IconButton($"reset{field.Name}", FontAwesomeIcon.Undo))
+                {
+                    field.SetValue(configuration.Theme, field.GetValue(Defaults));
+                    Sync();
+                }
+                ImGuiUtil.Tooltip("Reset to default");
+                ImGui.SameLine();
+
+                var value = (Vector4)field.GetValue(configuration.Theme)!;
+                if (ImGui.ColorEdit4($"{Prettify(field.Name)}##{field.Name}", ref value, ImGuiColorEditFlags.NoInputs))
+                {
+                    field.SetValue(configuration.Theme, value);
+                    Sync();
+                }
+            }
+
+            if (ImGui.Button("Reset colors"))
+            {
+                configuration.Theme = new ThemeColors();
+                Palette.Apply(configuration.Theme);
+                configuration.Save();
+
+            }
+
         }
 
         var availableHeight = ImGui.GetContentRegionAvail().Y;

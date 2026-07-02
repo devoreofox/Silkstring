@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.0.0 - 2026-07-02
+### Added
+- Syntax highlighting in the multiline editor: commands, keywords (`:if`, `:set`, `:wait`), variables, parameters, and quoted text are each given their own color as you type, and anything malformed is shown in red (a bad `:wait` time, an unfinished `:if`, a `:set` for a variable you have not created, a mistyped keyword, or an unclosed `{`)
+- Line numbers in the multiline editor, with a setting to turn them off
+- A Colors section in the settings to recolor the editor and interface, updating live as you change them
+
 ## v1.4.1.0 - 2026-07-01
 ### Fixed
 - Removed TBD and dated changelog (oops)

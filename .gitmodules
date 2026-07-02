@@ -1,0 +1,3 @@
+[submodule "extern/DalamudTextEdit"]
+	path = extern/DalamudTextEdit
+	url = https://github.com/devoreofox/DalamudTextEdit.git
