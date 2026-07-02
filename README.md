@@ -15,6 +15,7 @@ A Dalamud plugin for FFXIV that lets you define custom command aliases. Each ali
 - Filter aliases by name, and import, export, or clone them
 - Enable or disable an alias without deleting it
 - Built-in help window with a live command tester
+- Syntax highlighting in the multiline editor, with customizable colors
 - Cycle detection warns you if aliases would trigger each other in a loop
 
 ## Installation
@@ -174,11 +175,11 @@ Create a folder with the **New Folder** button, then drag aliases into or out of
 
 ### Multiline entry
 
-By default each line of an alias is its own row. You can switch to a single multiline text box in the settings, with one line per row, which is handy for pasting or editing longer aliases.
+By default each line of an alias is its own row. You can switch to a single multiline editor in the settings, which is handy for pasting or editing longer aliases. The editor highlights your syntax as you type: commands, keywords, variables, parameters, and quoted text each get their own color, and anything malformed (a bad `:wait`, an unfinished `:if`, an unknown `:set` name, a mistyped keyword, or an unclosed `{`) is shown in red. It also shows line numbers, which you can turn off in the settings.
 
 ### Settings
 
-Open settings with the cog icon in the Silkstring title bar, or the cog next to Silkstring in `/xlplugins`. You can set the delay between lines in milliseconds (0 to 1000, default 100), and toggle multiline command entry.
+Open settings with the cog icon in the Silkstring title bar, or the cog next to Silkstring in `/xlplugins`. You can set the delay between lines in milliseconds (0 to 1000, default 100), toggle multiline command entry, toggle line numbers in the editor, and open the Colors section to recolor the editor and interface to your taste.
 
 ## Notes
 
