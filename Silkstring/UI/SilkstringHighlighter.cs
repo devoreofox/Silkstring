@@ -13,10 +13,12 @@ namespace Silkstring.UI;
 public sealed class SilkstringHighlighter : ISyntaxHighlighter
 {
     private const PaletteIndex Error = PaletteIndex.CharLiteral;
+    private const PaletteIndex Flag = PaletteIndex.Preprocessor;
 
     private static readonly object Empty = new();
     private static readonly Regex TokenRegex = new(@"\{(\d+\.\.\d+|\.\.\d+|\d+\.\.|\w+|\*)\}", RegexOptions.Compiled);
     private static readonly Regex StringRegex = new("\"[^\"]*\"?", RegexOptions.Compiled);
+    private static readonly Regex FlagRegex = new(@"(?<!\S)-[A-Za-z]\w*", RegexOptions.Compiled);
 
     private readonly Func<ISet<string>> _definedVariables;
 
@@ -67,6 +69,13 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
                 else PaintContent(line, text, exprStart);
                 break;
 
+            case BlockKind.Until:
+                Paint(line, 0, exprStart, PaletteIndex.Keyword);
+                var (_, untilCond) = BlockInterpreter.ParseUntil(expression);
+                if (TryParseCondition(untilCond)) PaintContent(line, text, exprStart);
+                else Paint(line, exprStart, text.Length, Error);
+                break;
+
             default:
                 if (text.Length > 1 && text[0] == ':' && char.IsLetter(text[1]))
                 {
@@ -101,8 +110,16 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         if (from >= text.Length) return;
         foreach (Match m in StringRegex.Matches(text, from))
             Paint(line, m.Index, m.Index + m.Length, PaletteIndex.String);
+        PaintFlags(line, text, from);
         PaintTokens(line, text, from);
         PaintMalformedBraces(line, from);
+    }
+
+    private static void PaintFlags(Span<Glyph> line, string text, int from)
+    {
+        if (from >= text.Length) return;
+        foreach (Match m in FlagRegex.Matches(text, from))
+            Paint(line, m.Index, m.Index + m.Length, Flag);
     }
 
     private static void PaintMalformedBraces(Span<Glyph> line, int from)
@@ -147,6 +164,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         r.SetColor(PaletteIndex.String, U32(Palette.String));
         r.SetColor(PaletteIndex.CharLiteral, U32(Palette.Error));
         r.SetColor(PaletteIndex.LineNumber, U32(Palette.LineNumber));
+        r.SetColor(PaletteIndex.Preprocessor, U32(Palette.Flag));
     }
 
     private static uint U32(Vector4 c) => ImGui.ColorConvertFloat4ToU32(c);

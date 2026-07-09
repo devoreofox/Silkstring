@@ -72,6 +72,21 @@ public static class AliasValidator
         return null;
     }
 
+    public static string? ValidateUntils(AliasEntry alias, bool allowUnsafe)
+    {
+        foreach (var command in alias.Output)
+        {
+            var (kind, expression) = BlockInterpreter.Classify(command.Command);
+            if (kind != BlockKind.Until) continue;
+            var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
+            if (string.IsNullOrWhiteSpace(condition)) return ":until needs a condition";
+            try { new Parser(Tokenizer.Tokenize(condition)).Parse(); }
+            catch (ConditionException ex) { return $"Invalid :until condition: {ex.Message}"; }
+            if (isUnsafe && !allowUnsafe) return "This :until uses -unsafe, but unsafe waits are off in settings";
+        }
+        return null;
+    }
+
     private static Dictionary<string, AliasEntry> BuildTriggerLookup(IEnumerable<AliasEntry> allAliases)
     {
         var lookup = new Dictionary<string, AliasEntry>(StringComparer.OrdinalIgnoreCase);
