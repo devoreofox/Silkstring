@@ -23,7 +23,7 @@ public class CommandHandler
         _setUserVariable = setUserVariable;
     }
 
-    public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null)
+    public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null, int untilTimeoutMs = 30000, bool allowUnsafe = false)
     {
         var blocks = new BlockInterpreter();
         var sent = false;
@@ -74,9 +74,8 @@ public class CommandHandler
                 if (blocks.Active)
                 {
                     var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
-                    await WaitUntilAsync(condition, args, isUnsafe, cancellationToken);
+                    await WaitUntilAsync(condition, args, isUnsafe && allowUnsafe, untilTimeoutMs, cancellationToken);
                 }
-
                 continue;
             }
 
@@ -114,10 +113,9 @@ public class CommandHandler
         }
     }
 
-    private async Task WaitUntilAsync(string condition, IReadOnlyList<string> args, bool isUnsafe, CancellationToken token)
+    private async Task WaitUntilAsync(string condition, IReadOnlyList<string> args, bool isUnsafe, int capMs, CancellationToken token)
     {
         const int pollMs = 100;
-        const int capMs = 30000;
         var elapsed = 0;
         while (!await _framework.RunOnFrameworkThread(() => EvaluateSafe(condition, args)))
         {

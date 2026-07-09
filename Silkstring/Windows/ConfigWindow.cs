@@ -53,6 +53,22 @@ public class ConfigWindow : Window, IDisposable
             configuration.MarkDirty();
         }
 
+        ImGui.Text("Until timeout (seconds)");
+        var untilTimeout = configuration.UntilTimeoutSeconds;
+        ImGui.SetNextItemWidth(150);
+        if (ImGui.InputInt("###untilTimeout", ref untilTimeout, 1, 5))
+        {
+            configuration.UntilTimeoutSeconds = untilTimeout;
+            configuration.MarkDirty();
+        }
+
+        var allowUnsafe = configuration.AllowUnsafeWaits;
+        if (ImGui.Checkbox("Allow unsafe (indefinite) waits", ref allowUnsafe))
+        {
+            configuration.AllowUnsafeWaits = allowUnsafe;
+            configuration.Save();
+        }
+
         var multiline = configuration.MultilineCommands;
         if (ImGui.Checkbox("Multiline command entry", ref multiline))
         {

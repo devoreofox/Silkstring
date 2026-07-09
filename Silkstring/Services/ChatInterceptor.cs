@@ -78,7 +78,9 @@ public sealed unsafe class ChatInterceptor : IDisposable
                     bool ShouldSkip(string cmd) => _executingAliases.Contains(cmd);
 
                     _commandHandler.ExecuteAsync(commands, args, _configuration.CommandDelay, _cts.Token,
-                                                 shouldSkip: ShouldSkip)
+                                                 shouldSkip: ShouldSkip,
+                                                 untilTimeoutMs: _configuration.UntilTimeoutSeconds * 1000,
+                                                 allowUnsafe: _configuration.AllowUnsafeWaits)
                                    .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"),
                                                  TaskContinuationOptions.OnlyOnFaulted)
                                    .ContinueWith(_ => _framework.RunOnFrameworkThread(() =>
