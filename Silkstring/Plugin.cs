@@ -144,7 +144,15 @@ public sealed class Plugin : IDalamudPlugin
             case "help": ToggleHelpUi(); break;
             case "changelog": ToggleChangelogUi(); break;
             case "variables": ToggleVariablesUi(); break;
-            case "edit": ToggleConfigUi(); break;
+            case "cancel": {
+                var cancelled = _chatInterceptor.CancelRunning();
+                NotificationManager.AddNotification(new Notification
+                {
+                    Content = cancelled ? "Cancelled running aliases." : "Nothing to cancel.",
+                    Type = NotificationType.Info
+                });
+                break;
+            }
             default: MainWindow.Toggle(); break;
         }
     }
