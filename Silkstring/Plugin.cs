@@ -27,6 +27,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
     [PluginService] internal static IClientState ClientState { get; private set; } = null!;
     [PluginService] internal static ICondition Condition { get; private set; } = null!;
+    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
 
     private const string CommandName = "/silkstring";
 
@@ -70,6 +71,7 @@ public sealed class Plugin : IDalamudPlugin
             new VitalsVariablesProvider(ClientState),
             new CombatVariablesProvider(Condition, TargetManager),
             new CurrencyVariablesProvider(),
+            new EmoteVariablesProvider(ClientState, DataManager),
         ];
 
         var reserved = builtIn.SelectMany(p => p.GetVariables()).Select(v => v.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
