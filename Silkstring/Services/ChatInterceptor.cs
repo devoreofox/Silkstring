@@ -18,7 +18,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
     private readonly CommandHandler _commandHandler;
     private readonly IFramework _framework;
 
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource _cts = new();
     private readonly HashSet<string> _executingAliases = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Hook<ShellCommandModule.Delegates.ExecuteCommandInner> _hook;
@@ -42,6 +42,15 @@ public sealed unsafe class ChatInterceptor : IDisposable
 
         _hook?.Disable();
         _hook?.Dispose();
+    }
+
+    public bool CancelRunning()
+    {
+        var wasRunning = _executingAliases.Count > 0;
+        _cts.Cancel();
+        _cts.Dispose();
+        _cts = new CancellationTokenSource();
+        return wasRunning;
     }
 
     private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
@@ -69,7 +78,9 @@ public sealed unsafe class ChatInterceptor : IDisposable
                     bool ShouldSkip(string cmd) => _executingAliases.Contains(cmd);
 
                     _commandHandler.ExecuteAsync(commands, args, _configuration.CommandDelay, _cts.Token,
-                                                 shouldSkip: ShouldSkip)
+                                                 shouldSkip: ShouldSkip,
+                                                 untilTimeoutMs: _configuration.UntilTimeoutSeconds * 1000,
+                                                 allowUnsafe: _configuration.AllowUnsafeWaits)
                                    .ContinueWith(t => Log.Error(t.Exception, "Command execution failed"),
                                                  TaskContinuationOptions.OnlyOnFaulted)
                                    .ContinueWith(_ => _framework.RunOnFrameworkThread(() =>

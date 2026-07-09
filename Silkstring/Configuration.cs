@@ -21,6 +21,14 @@ public class Configuration : IPluginConfiguration
         set => _commandDelay = Math.Clamp(value, 0, 1000);
     }
 
+    private int _untilTimeoutSeconds = 30;
+    public int UntilTimeoutSeconds
+    {
+        get => _untilTimeoutSeconds;
+        set => _untilTimeoutSeconds = Math.Clamp(value, 1, 600);
+    }
+    public bool AllowUnsafeWaits { get; set; }
+
     public const int CurrentVersion = 2;
     public string? LastSeenVersion { get; set; }
     public int Version { get; set; } = CurrentVersion;

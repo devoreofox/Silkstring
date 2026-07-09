@@ -160,7 +160,7 @@ public class AliasEditPanel
         if (_selectedAlias == null) return;
         _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
         var defined = new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase);
-        _blockError = AliasValidator.ValidateBlocks(_selectedAlias) ?? AliasValidator.ValidateSets(_selectedAlias, defined) ?? AliasValidator.ValidateWaits(_selectedAlias);
+        _blockError = AliasValidator.ValidateBlocks(_selectedAlias) ?? AliasValidator.ValidateSets(_selectedAlias, defined) ?? AliasValidator.ValidateWaits(_selectedAlias) ?? AliasValidator.ValidateUntils(_selectedAlias, _configuration.AllowUnsafeWaits);
     }
 
     private static void ApplyMultiline(AliasEntry alias, string text)

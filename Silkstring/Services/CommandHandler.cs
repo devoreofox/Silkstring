@@ -23,7 +23,7 @@ public class CommandHandler
         _setUserVariable = setUserVariable;
     }
 
-    public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null)
+    public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null, int untilTimeoutMs = 30000, bool allowUnsafe = false)
     {
         var blocks = new BlockInterpreter();
         var sent = false;
@@ -69,6 +69,16 @@ public class CommandHandler
                 continue;
             }
 
+            if (kind == BlockKind.Until)
+            {
+                if (blocks.Active)
+                {
+                    var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
+                    await WaitUntilAsync(condition, args, isUnsafe && allowUnsafe, untilTimeoutMs, cancellationToken);
+                }
+                continue;
+            }
+
             if (!blocks.Active) continue;
 
             var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(line, args));
@@ -100,6 +110,19 @@ public class CommandHandler
         {
             Log.Warning(ex, "Invalid condition: {Expression}", expression);
             return false;
+        }
+    }
+
+    private async Task WaitUntilAsync(string condition, IReadOnlyList<string> args, bool isUnsafe, int capMs, CancellationToken token)
+    {
+        const int pollMs = 100;
+        var elapsed = 0;
+        while (!await _framework.RunOnFrameworkThread(() => EvaluateSafe(condition, args)))
+        {
+            await Task.Delay(pollMs, token);
+            if (isUnsafe) continue;
+            elapsed += pollMs;
+            if (elapsed >= capMs) break;
         }
     }
 }

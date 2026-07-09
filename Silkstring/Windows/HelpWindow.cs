@@ -18,6 +18,7 @@ public class HelpWindow : Window, IDisposable
         Variables = 1,
         Parameters = 2,
         Conditionals = 3,
+        Editor = 4,
     }
 
     private Tab _selectedTab = Tab.Commands;
@@ -70,6 +71,7 @@ public class HelpWindow : Window, IDisposable
             case Tab.Variables: DrawVariablesHelp(); break;
             case Tab.Parameters: DrawParametersHelp(); break;
             case Tab.Conditionals: DrawConditionalsHelp(); break;
+            case Tab.Editor: DrawEditorHelp(); break;
         }
 
         ImGui.EndChild();
@@ -177,7 +179,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextColored(Palette.Heading, "Conditionals");
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks, and pause with :wait. See the Conditionals tab.");
+        ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks, pause with :wait, and hold until something happens with :until. See the Conditionals tab.");
         ImGui.Spacing();
 
         ImGui.TextColored(Palette.Heading, "Macros");
@@ -318,7 +320,7 @@ public class HelpWindow : Window, IDisposable
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextDisabled(token);
+        ImGui.TextColored(Palette.Parameter, token);
         ImGui.TableNextColumn();
         ImGui.TextWrapped(meaning);
     }
@@ -375,5 +377,54 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextDisabled("/say Up you get!");
         ImGui.Unindent();
         ImGui.Spacing();
+
+        ImGui.TextColored(Palette.Heading, "Until");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("Hold an alias at a line until a condition becomes true with :until, then carry on. It is handy for waiting on your own state, for example holding a pose until an emote ends.");
+        ImGui.Spacing();
+        ImGui.Indent();
+        ImGui.TextDisabled("/sit");
+        ImGui.TextDisabled(":until {emoting} == false");
+        ImGui.TextDisabled("/say Up you get!");
+        ImGui.Unindent();
+        ImGui.Spacing();
+        ImGui.TextWrapped("If the condition never comes true, :until gives up after a timeout you can set in Settings and then continues. Add -unsafe to wait with no time limit, which must be turned on in Settings first. Stop any running alias at any time with /silkstring cancel.");
+        ImGui.Spacing();
+    }
+
+    private void DrawEditorHelp()
+    {
+        ImGui.TextColored(Palette.Heading, "Editor Colors");
+        ImGui.Separator();
+        ImGui.Spacing();
+        ImGui.TextWrapped("In the multiline editor, Silkstring colors each part of a line as you type. Anything it cannot make sense of is shown in the error color so you can spot a mistake before it runs. Every color here can be changed in Settings.");
+        ImGui.Spacing();
+        if (ImGui.BeginTable("###editorColors", 3, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.RowBg | ImGuiTableFlags.BordersOuter))
+        {
+            ImGui.TableSetupColumn("Element", ImGuiTableColumnFlags.WidthFixed, 140);
+            ImGui.TableSetupColumn("Example", ImGuiTableColumnFlags.WidthFixed, 200);
+            ImGui.TableSetupColumn("Meaning", ImGuiTableColumnFlags.WidthStretch);
+            DrawColorRow(Palette.Command, "Command", "/emote waves", "A line that runs as a game command");
+            DrawColorRow(Palette.Keyword, "Keyword", ":if  :until  :wait", "Control words that shape how an alias runs");
+            DrawColorRow(Palette.Variable, "Variable", "{character}", "A value filled in when the alias runs");
+            DrawColorRow(Palette.Parameter, "Parameter", "{0}  {1..}", "An argument typed after the trigger");
+            DrawColorRow(Palette.String, "Quoted text", "\"Jane Doe\"", "A quoted value kept as one piece");
+            DrawColorRow(Palette.Flag, "Flag", "-unsafe", "An option that changes how a line behaves");
+            DrawColorRow(Palette.Error, "Problem", ":wait abc", "Something malformed that will not work as written");
+            ImGui.EndTable();
+        }
+        ImGui.Spacing();
+    }
+
+    private void DrawColorRow(Vector4 color, string element, string example, string meaning)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextColored(color, element);
+        ImGui.TableNextColumn();
+        ImGui.TextColored(color, example);
+        ImGui.TableNextColumn();
+        ImGui.TextWrapped(meaning);
     }
 }

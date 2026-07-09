@@ -82,6 +82,12 @@ public class VariablesWindow : Window, IDisposable
             if (ImGuiComponents.IconButton(variable.UniqueId, FontAwesomeIcon.Trash)) toRemove = variable;
             ImGui.EndDisabled();
             ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
+            ImGui.Indent(150);
+            ImGui.SetNextItemWidth(-60);
+            if (ImGui.InputTextWithHint($"###desc{variable.UniqueId}", "description (optional)", ref variable.Description, 200)) _store.MarkChanged();
+            if (ImGui.IsItemDeactivatedAfterEdit()) _resolver.Refresh();
+            ImGui.Unindent(150);
+            ImGui.Spacing();
         }
 
         if (toRemove != null)

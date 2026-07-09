@@ -11,7 +11,8 @@ internal enum BlockKind
     Else,
     EndIf,
     Set,
-    Wait
+    Wait,
+    Until
 }
 
 internal sealed class BlockInterpreter
@@ -26,7 +27,15 @@ internal sealed class BlockInterpreter
         if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
         if (line.StartsWith(":set ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Set, line[5..]);
         if (line.StartsWith(":wait ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Wait, line[6..]);
+        if (line.StartsWith(":until ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Until, line[7..]);
         return (BlockKind.Command, line);
+    }
+
+    public static (bool Unsafe, string Condition) ParseUntil(string expression)
+    {
+        var trimmed = expression.Trim();
+        if (trimmed.EndsWith(" -unsafe", StringComparison.OrdinalIgnoreCase)) return (true, trimmed[..^8].TrimEnd());
+        return (false, trimmed);
     }
 
     public static (string Name, string Value) ParseSet(string expression)

@@ -27,6 +27,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
     [PluginService] internal static IClientState ClientState { get; private set; } = null!;
     [PluginService] internal static ICondition Condition { get; private set; } = null!;
+    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
 
     private const string CommandName = "/silkstring";
 
@@ -70,6 +71,7 @@ public sealed class Plugin : IDalamudPlugin
             new VitalsVariablesProvider(ClientState),
             new CombatVariablesProvider(Condition, TargetManager),
             new CurrencyVariablesProvider(),
+            new EmoteVariablesProvider(ClientState, DataManager),
         ];
 
         var reserved = builtIn.SelectMany(p => p.GetVariables()).Select(v => v.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -142,7 +144,15 @@ public sealed class Plugin : IDalamudPlugin
             case "help": ToggleHelpUi(); break;
             case "changelog": ToggleChangelogUi(); break;
             case "variables": ToggleVariablesUi(); break;
-            case "edit": ToggleConfigUi(); break;
+            case "cancel": {
+                var cancelled = _chatInterceptor.CancelRunning();
+                NotificationManager.AddNotification(new Notification
+                {
+                    Content = cancelled ? "Cancelled running aliases." : "Nothing to cancel.",
+                    Type = NotificationType.Info
+                });
+                break;
+            }
             default: MainWindow.Toggle(); break;
         }
     }

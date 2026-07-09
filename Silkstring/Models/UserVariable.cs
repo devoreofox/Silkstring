@@ -9,6 +9,7 @@ public class UserVariable
     private static int _nextId = 0;
 
     public string Name = string.Empty;
+    public string Description = string.Empty;
     public string Value = string.Empty;
 
     [NonSerialized]

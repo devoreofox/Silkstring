@@ -19,7 +19,7 @@ public sealed class UserVariableProvider : IVariableProvider
         foreach (var variable in _variables())
         {
             var name = variable.Name;
-            yield return new(name, "User-defined variable", "User", () => Lookup(name));
+            yield return new(name, variable.Description, "User", () => Lookup(name));
         }
     }
 
