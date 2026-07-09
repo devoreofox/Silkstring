@@ -69,6 +69,17 @@ public class CommandHandler
                 continue;
             }
 
+            if (kind == BlockKind.Until)
+            {
+                if (blocks.Active)
+                {
+                    var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
+                    await WaitUntilAsync(condition, args, isUnsafe, cancellationToken);
+                }
+
+                continue;
+            }
+
             if (!blocks.Active) continue;
 
             var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(line, args));
@@ -100,6 +111,20 @@ public class CommandHandler
         {
             Log.Warning(ex, "Invalid condition: {Expression}", expression);
             return false;
+        }
+    }
+
+    private async Task WaitUntilAsync(string condition, IReadOnlyList<string> args, bool isUnsafe, CancellationToken token)
+    {
+        const int pollMs = 100;
+        const int capMs = 30000;
+        var elapsed = 0;
+        while (!await _framework.RunOnFrameworkThread(() => EvaluateSafe(condition, args)))
+        {
+            await Task.Delay(pollMs, token);
+            if (isUnsafe) continue;
+            elapsed += pollMs;
+            if (elapsed >= capMs) break;
         }
     }
 }
