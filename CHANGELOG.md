@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.6.0.0 - 2026-07-09
+### Added
+- Emote variables: `{emoting}` tells you whether you are holding an emote or pose, `{emote}` gives its name, and `{pose}` gives the pose number. They appear in the Variables tab alongside the other built-ins
+- Your own variables can now have a description, which you set in the Variables window and see next to them in the Variables tab of the help window
+- Until: add a `:until` line to hold an alias at that point until a condition becomes true, then carry on, for example `:until {emoting} == false`. Handy for waiting on your own state before the next line runs, such as holding a statement until an emote ends
+- An `-unsafe` option on `:until` lets it wait with no time limit. It has to be turned on in the settings first, and normal untils use a timeout you can set there too
+- A `/silkstring cancel` command stops any aliases that are currently running
+- The editor now colors option flags like `-unsafe`, in a color you can change in the settings
+- A new Editor tab in the help window shows what each highlight color means
+
 ## v1.5.0.0 - 2026-07-02
 ### Added
 - Syntax highlighting in the multiline editor: commands, keywords (`:if`, `:set`, `:wait`), variables, parameters, and quoted text are each given their own color as you type, and anything malformed is shown in red (a bad `:wait` time, an unfinished `:if`, a `:set` for a variable you have not created, a mistyped keyword, or an unclosed `{`)

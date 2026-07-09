@@ -16,6 +16,7 @@ A Dalamud plugin for FFXIV that lets you define custom command aliases. Each ali
 - Enable or disable an alias without deleting it
 - Built-in help window with a live command tester
 - Syntax highlighting in the multiline editor, with customizable colors
+- Hold an alias until a condition is met with `:until`, and stop running aliases with `/silkstring cancel`
 - Cycle detection warns you if aliases would trigger each other in a loop
 
 ## Installation
@@ -86,7 +87,9 @@ Variables let you insert live game values into a line using curly brace syntax. 
 /say I am {character}, a level {level} {job} from {world}!
 ```
 
-Silkstring includes variables for your character, job, HP and MP, combat state, target, currency, and more, and the list keeps growing. For the full, always-current list with live values, open the Variables tab of the help window (`/silkstring help`). The command tester at the top of that window shows resolved output as you type.
+Silkstring includes variables for your character, job, HP and MP, combat state, target, currency, emote and pose state, and more, and the list keeps growing. For the full, always-current list with live values, open the Variables tab of the help window (`/silkstring help`). The command tester at the top of that window shows resolved output as you type.
+
+You can also define your own variables with `/silkstring variables` and use them just like the built-in ones (see User Variables below).
 
 ### Parameters
 
@@ -146,9 +149,19 @@ You can also pause between lines with `:wait`, followed by a number of seconds:
 
 The wait accepts decimals (`:wait 1.5`) and can take its duration from a variable or parameter (`:wait {0}`). Waits are capped at 60 seconds, and a `:wait` inside a condition only pauses when that branch actually runs. Like the other control lines, `:wait` is never sent to chat, and the editor warns you if a duration is invalid.
 
+You can also hold an alias in place until a condition becomes true with `:until`, then let it carry on:
+
+```
+/sit
+:until {emoting} == false
+/say Up you get!
+```
+
+`:until` pauses at that line until the condition is true, for example waiting until an emote or pose ends. If the condition never comes true, it gives up after a timeout you can set in the settings and then continues. Add `-unsafe` to wait with no time limit, such as `:until {emoting} == false -unsafe`, but unsafe waits have to be turned on in the settings first. You can stop any running alias at any time with `/silkstring cancel`.
+
 ### User Variables
 
-Alongside the built-in variables, you can define your own. Open the Variables window with `/silkstring variables`, type a name, and give it a value. Names can use letters, numbers, and underscores, and cannot reuse a built-in variable name.
+Alongside the built-in variables, you can define your own. Open the Variables window with `/silkstring variables`, type a name, and give it a value. Names can use letters, numbers, and underscores, and cannot reuse a built-in variable name. You can also give each one an optional description, which appears next to it in the Variables tab of the help window.
 
 Your variables work just like the built-in ones: insert them anywhere with `{name}`, and they appear in the Variables tab of the help window.
 
@@ -175,11 +188,11 @@ Create a folder with the **New Folder** button, then drag aliases into or out of
 
 ### Multiline entry
 
-By default each line of an alias is its own row. You can switch to a single multiline editor in the settings, which is handy for pasting or editing longer aliases. The editor highlights your syntax as you type: commands, keywords, variables, parameters, and quoted text each get their own color, and anything malformed (a bad `:wait`, an unfinished `:if`, an unknown `:set` name, a mistyped keyword, or an unclosed `{`) is shown in red. It also shows line numbers, which you can turn off in the settings.
+By default each line of an alias is its own row. You can switch to a single multiline editor in the settings, which is handy for pasting or editing longer aliases. The editor highlights your syntax as you type: commands, keywords, variables, parameters, quoted text, and option flags each get their own color, and anything malformed (a bad `:wait`, an unfinished `:if`, an unknown `:set` name, a mistyped keyword, or an unclosed `{`) is shown in red. It also shows line numbers, which you can turn off in the settings.
 
 ### Settings
 
-Open settings with the cog icon in the Silkstring title bar, or the cog next to Silkstring in `/xlplugins`. You can set the delay between lines in milliseconds (0 to 1000, default 100), toggle multiline command entry, toggle line numbers in the editor, and open the Colors section to recolor the editor and interface to your taste.
+Open settings with the cog icon in the Silkstring title bar, or the cog next to Silkstring in `/xlplugins`. You can set the delay between lines in milliseconds (0 to 1000, default 100), set how long an `:until` waits before giving up, allow unsafe waits that have no time limit, toggle multiline command entry, toggle line numbers in the editor, and open the Colors section to recolor the editor and interface to your taste.
 
 ## Notes
 
