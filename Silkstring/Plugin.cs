@@ -73,6 +73,7 @@ public sealed class Plugin : IDalamudPlugin
             new CombatVariablesProvider(Condition, TargetManager),
             new CurrencyVariablesProvider(),
             new EmoteVariablesProvider(ClientState, DataManager),
+            new TimeVariablesProvider(),
         ];
 
         var reserved = builtIn.SelectMany(p => p.GetVariables()).Select(v => v.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
