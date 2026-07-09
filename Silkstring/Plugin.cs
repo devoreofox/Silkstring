@@ -11,6 +11,7 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using Silkstring.Services;
 using Silkstring.Services.Variables;
+using Silkstring.Services.Variables.Providers;
 using Silkstring.UI;
 using Silkstring.Windows;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Silkstring.Models;
 
-namespace Silkstring.Services.Variables;
+namespace Silkstring.Services.Variables.Providers;
 
 public sealed class UserVariableProvider : IVariableProvider
 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 
-namespace Silkstring.Services.Variables;
+namespace Silkstring.Services.Variables.Providers;
 
 public sealed class PlayerVariableProvider : IVariableProvider
 {
