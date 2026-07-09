@@ -4,7 +4,7 @@ using ECommons.DalamudServices.Legacy;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.Sheets;
 
-namespace Silkstring.Services.Variables;
+namespace Silkstring.Services.Variables.Providers;
 
 public sealed class EmoteVariablesProvider : IVariableProvider
 {

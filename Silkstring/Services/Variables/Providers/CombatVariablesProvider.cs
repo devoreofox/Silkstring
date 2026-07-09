@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin.Services;
 
-namespace Silkstring.Services.Variables;
+namespace Silkstring.Services.Variables.Providers;
 
 public sealed class CombatVariablesProvider : IVariableProvider
 {

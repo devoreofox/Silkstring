@@ -87,7 +87,9 @@ Variables let you insert live game values into a line using curly brace syntax. 
 /say I am {character}, a level {level} {job} from {world}!
 ```
 
-Silkstring includes variables for your character, job, HP and MP, combat state, target, currency, emote and pose state, and more, and the list keeps growing. For the full, always-current list with live values, open the Variables tab of the help window (`/silkstring help`). The command tester at the top of that window shows resolved output as you type.
+Silkstring includes variables for your character, job, HP and MP, combat state, target, currency, emote and pose state, the time and date, and more, and the list keeps growing. For the full, always-current list with live values, open the Variables tab of the help window (`/silkstring help`). The command tester at the top of that window shows resolved output as you type.
+
+The time variables come in two flavors: `{time}` (like 3:45 PM) is for showing the time, while `{time24}` (like 15:45), `{date}`, `{hour}`, and `{minute}` are made for comparing, so you can gate lines by the clock (see Conditionals below). There is also `{daypart}`, which is simply morning, afternoon, evening, or night, and `{utc}` and `{utcdate}` for UTC (server) time.
 
 You can also define your own variables with `/silkstring variables` and use them just like the built-in ones (see User Variables below).
 
@@ -135,7 +137,10 @@ A condition compares values with `==`, `!=`, `<`, `>`, `<=`, `>=`, and you can c
 :if {incombat} && {hpp} < 50
 :if {job} == WHM || {job} == SCH
 :if {0} == on
+:if {time24} >= 17:00 || {time24} <= 05:00
 ```
+
+That last line reacts to the clock: because `{time24}` and `{date}` are written with leading zeros (like 09:00 and 2026-07-09), they sort in the right order and can be compared with `<`, `>`, `<=`, and `>=`. This is why `{time24}` is the one to compare against, while `{time}` (like 3:45 PM) is just for showing.
 
 Text comparisons are case-insensitive, and numbers compare as numbers. The `:if`, `:else`, and `:endif` lines are never sent to chat, and the alias editor warns you if a block is left open or a condition cannot be understood.
 

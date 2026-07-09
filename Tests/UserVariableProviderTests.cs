@@ -1,6 +1,6 @@
 using Silkstring.Models;
 using Silkstring.Services;
-using Silkstring.Services.Variables;
+using Silkstring.Services.Variables.Providers;
 
 public class UserVariableProviderTests
 {

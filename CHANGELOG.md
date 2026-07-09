@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.1.0 - 2026-07-09
+### Added
+- Time variables: your aliases can now react to the clock. `{time}` shows your local time (like 3:45 PM), `{time24}` shows it in 24-hour form (15:45), and `{date}`, `{day}`, `{hour}`, and `{minute}` fill in the rest. `{daypart}` gives morning, afternoon, evening, or night, so a venue greeter can open with something like `Good {daypart}, welcome in!`
+- `{utc}` and `{utcdate}` give the UTC (server) time and date, handy for lining things up with people in other time zones
+- The 24-hour and date variables are made to be compared in conditions, so you can gate lines by the clock, for example `:if {time24} >= 17:00` to switch to an evening greeting. Use `{time}` for showing the time and `{time24}` (or `{hour}`) when comparing it
+
 ## v1.6.0.0 - 2026-07-09
 ### Added
 - Emote variables: `{emoting}` tells you whether you are holding an emote or pose, `{emote}` gives its name, and `{pose}` gives the pose number. They appear in the Variables tab alongside the other built-ins

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices.Legacy;
 
-namespace Silkstring.Services.Variables;
+namespace Silkstring.Services.Variables.Providers;
 
 public sealed class VitalsVariablesProvider : IVariableProvider
 {

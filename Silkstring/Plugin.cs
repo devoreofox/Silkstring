@@ -11,6 +11,7 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using Silkstring.Services;
 using Silkstring.Services.Variables;
+using Silkstring.Services.Variables.Providers;
 using Silkstring.UI;
 using Silkstring.Windows;
 
@@ -72,6 +73,7 @@ public sealed class Plugin : IDalamudPlugin
             new CombatVariablesProvider(Condition, TargetManager),
             new CurrencyVariablesProvider(),
             new EmoteVariablesProvider(ClientState, DataManager),
+            new TimeVariablesProvider(),
         ];
 
         var reserved = builtIn.SelectMany(p => p.GetVariables()).Select(v => v.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
