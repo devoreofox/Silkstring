@@ -108,6 +108,8 @@ public class AliasEditPanel
         }
 
         _editor.Renderer.ShowLineNumbers = _configuration.ShowLineNumbers;
+        _editor.Renderer.IsShowingWhitespace = false;
+
         SilkstringHighlighter.ApplyPalette(_editor);
 
         if (_editor.Render("###aliasEditor", new Vector2(-1, ImGui.GetContentRegionAvail().Y)))

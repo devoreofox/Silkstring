@@ -9,11 +9,7 @@ public sealed class ConditionEvaluator
 
     public ConditionEvaluator(Func<string, IReadOnlyList<string>, string> resolve) => _resolve = resolve;
 
-    public bool Evaluate(string expression, IReadOnlyList<string> args)
-    {
-        var ast = new Parser(Tokenizer.Tokenize(expression)).Parse();
-        return Eval(ast, args);
-    }
+    public bool Evaluate(string expression, IReadOnlyList<string> args) => Condition.TryParse(expression, out var ast, out _) && Eval(ast!, args);
 
     private bool Eval(ConditionNode node, IReadOnlyList<string> args) => node switch
     {

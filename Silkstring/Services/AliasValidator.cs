@@ -26,8 +26,7 @@ public static class AliasValidator
             switch (kind)
             {
                 case BlockKind.If:
-                    try { new Parser(Tokenizer.Tokenize(expression)).Parse(); }
-                    catch (ConditionException ex) { return $"Invalid condition: {ex.Message}"; }
+                    if (!Condition.TryParse(expression, out _, out var error)) return $"Invalid condition: {error}";
                     elseSeen.Push(false);
                     break;
                 case BlockKind.Else:
@@ -80,8 +79,7 @@ public static class AliasValidator
             if (kind != BlockKind.Until) continue;
             var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
             if (string.IsNullOrWhiteSpace(condition)) return ":until needs a condition";
-            try { new Parser(Tokenizer.Tokenize(condition)).Parse(); }
-            catch (ConditionException ex) { return $"Invalid :until condition: {ex.Message}"; }
+            if (!Condition.TryParse(condition, out _, out var error)) return $"Invalid :until condition: {error}";
             if (isUnsafe && !allowUnsafe) return "This :until uses -unsafe, but unsafe waits are off in settings";
         }
         return null;

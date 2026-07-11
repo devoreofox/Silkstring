@@ -48,5 +48,5 @@ public class ConditionEvaluatorTests
     [InlineData("")]
     [InlineData("&&")]
     [InlineData("{a} {b}")]
-    public void ThrowsOnMalformed(string expr) => Assert.Throws<ConditionException>(() => Make().Evaluate(expr, Array.Empty<string>()));
+    public void ReturnsFalseOnMalformed(string expr) => Assert.False(Make().Evaluate(expr, Array.Empty<string>()));
 }

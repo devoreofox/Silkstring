@@ -99,11 +99,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         return Empty;
     }
 
-    private static bool TryParseCondition(string expression)
-    {
-        try { new Parser(Tokenizer.Tokenize(expression)).Parse(); return true; }
-        catch (ConditionException) { return false; }
-    }
+    private static bool TryParseCondition(string expression) => Condition.TryParse(expression, out _, out _);
 
     private static void PaintContent(Span<Glyph> line, string text, int from)
     {
