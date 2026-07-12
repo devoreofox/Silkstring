@@ -40,21 +40,27 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         var indent = text.Length - text.TrimStart().Length;
         var body = text.TrimStart();
 
+        if (IsHeadKeyword(body, out var kwLen))
+        {
+            Paint(line, indent, indent + kwLen, PaletteIndex.Keyword);
+            if (TryBraceHead(body, out var condRel, out var condLen))
+            {
+                var condStart = indent + condRel;
+                var condEnd = condStart + condLen;
+                if (TryParseCondition(text.Substring(condStart, condLen))) PaintContent(line, text, condStart, condEnd);
+                else Paint(line, condStart, condEnd, Error);
+            }
+            else if (body[kwLen..].TrimStart() != "{")
+            {
+                Paint(line, indent + kwLen, text.Length, Error);
+            }
+            return Empty;
+        }
+
         var (kind, expression) = BlockInterpreter.Classify(body);
         var exprStart = indent + body.Length - expression.Length;
         switch (kind)
         {
-            case BlockKind.If:
-                Paint(line, indent, exprStart, PaletteIndex.Keyword);
-                if (TryParseCondition(expression)) PaintContent(line, text, exprStart);
-                else Paint(line, exprStart, text.Length, Error);
-                break;
-
-            case BlockKind.Else:
-            case BlockKind.EndIf:
-                Paint(line, indent, exprStart, PaletteIndex.Keyword);
-                break;
-
             case BlockKind.Set:
                 Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 var (name, _) = BlockInterpreter.ParseSet(expression);
@@ -79,6 +85,10 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
 
             case BlockKind.Comment:
                 Paint(line, indent, text.Length, PaletteIndex.Comment);
+                break;
+
+            case BlockKind.Return:
+                Paint(line, indent, text.Length, PaletteIndex.Keyword);
                 break;
 
             default:
@@ -106,14 +116,51 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
 
     private static bool TryParseCondition(string expression) => Condition.TryParse(expression, out _, out _);
 
-    private static void PaintContent(Span<Glyph> line, string text, int from)
+    private static bool TryBraceHead(string body, out int condStart, out int condLen)
+    {
+        condStart = 0; condLen = 0;
+        string kw;
+        if (body.StartsWith("else if")) kw = "else if";
+        else if (body.StartsWith("if")) kw = "if";
+        else return false;
+        var trimmed = body[kw.Length..].TrimStart();
+        if (trimmed.Length == 0 || trimmed[0] != '(') return false;
+        var close = MatchParen(trimmed);
+        if (close < 0 || trimmed[(close + 1)..].Trim() != "{") return false;
+        condStart = body.Length - trimmed.Length + 1;
+        condLen = close - 1;
+        return true;
+    }
+
+    private static bool IsHeadKeyword(string body, out int kwLen)
+    {
+        kwLen = 0;
+        if (body.StartsWith("else if")) { if (body[7..].TrimStart().StartsWith('(')) { kwLen = 7; return true; } return false; }
+        if (body.StartsWith("if"))      { if (body[2..].TrimStart().StartsWith('(')) { kwLen = 2; return true; } return false; }
+        if (body.StartsWith("else"))    { if (body[4..].TrimStart().StartsWith('{')) { kwLen = 4; return true; } return false; }
+        return false;
+    }
+
+    private static int MatchParen(string s)
+    {
+        var depth = 0;
+        for (var i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '(') depth++;
+            else if (s[i] == ')' && --depth == 0) return i;
+        }
+        return -1;
+    }
+
+    private static void PaintContent(Span<Glyph> line, string text, int from) => PaintContent(line, text, from, line.Length);
+
+    private static void PaintContent(Span<Glyph> line, string text, int from, int to)
     {
         if (from >= text.Length) return;
-        foreach (Match m in StringRegex.Matches(text, from))
-            Paint(line, m.Index, m.Index + m.Length, PaletteIndex.String);
+        foreach (Match m in StringRegex.Matches(text, from)) Paint(line, m.Index, m.Index + m.Length, PaletteIndex.String);
         PaintFlags(line, text, from);
         PaintTokens(line, text, from);
-        PaintMalformedBraces(line, from);
+        PaintMalformedBraces(line, from, to);
     }
 
     private static void PaintFlags(Span<Glyph> line, string text, int from)
@@ -123,9 +170,9 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
             Paint(line, m.Index, m.Index + m.Length, Flag);
     }
 
-    private static void PaintMalformedBraces(Span<Glyph> line, int from)
+    private static void PaintMalformedBraces(Span<Glyph> line, int from, int to)
     {
-        for (var i = from; i < line.Length; i++)
+        for (var i = from; i < to; i++)
         {
             if (line[i].Char != '{' || line[i].ColorIndex != PaletteIndex.Default) continue;
             var end = i + 1;
@@ -167,6 +214,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         r.SetColor(PaletteIndex.LineNumber, U32(Palette.LineNumber));
         r.SetColor(PaletteIndex.Preprocessor, U32(Palette.Flag));
         r.SetColor(PaletteIndex.Comment, U32(Palette.Comment));
+        r.SetColor(PaletteIndex.ErrorMarker, U32(new Vector4(Palette.Error.X, Palette.Error.Y, Palette.Error.Z, 0.25f)));
     }
 
     private static uint U32(Vector4 c) => ImGui.ColorConvertFloat4ToU32(c);

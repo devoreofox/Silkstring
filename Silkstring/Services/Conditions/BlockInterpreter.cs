@@ -7,9 +7,6 @@ namespace Silkstring.Services.Conditions;
 internal enum BlockKind
 {
     Command,
-    If,
-    Else,
-    EndIf,
     Set,
     Wait,
     Until,
@@ -17,17 +14,11 @@ internal enum BlockKind
     Return
 }
 
-internal sealed class BlockInterpreter
+internal static class BlockInterpreter
 {
-    private readonly Stack<Block> _stack = new();
-    public bool Active => _stack.Count == 0 || _stack.Peek().Active;
-
     public static (BlockKind Kind, string Expression) Classify(string line)
     {
         if (line.StartsWith("#")) return (BlockKind.Comment, line);
-        if (line.StartsWith(":if ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.If, line[4..]);
-        if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
-        if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
         if (line.Equals(":return", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Return, "");
         if (IsStatement(line, ":set", out var set)) return (BlockKind.Set, set);
         if (IsStatement(line, ":wait", out var wait)) return (BlockKind.Wait, wait);
@@ -58,24 +49,6 @@ internal sealed class BlockInterpreter
         return true;
     }
 
-    public void EnterIf(bool conditionMet)
-    {
-        var parentActive = Active;
-        _stack.Push(new Block { ParentActive = parentActive, ConditionTrue = conditionMet, Active = parentActive && conditionMet });
-    }
-
-    public void Else()
-    {
-        if (_stack.Count == 0) return;
-        var block = _stack.Peek();
-        block.Active = block.ParentActive && !block.ConditionTrue;
-    }
-
-    public void EndIf()
-    {
-        if (_stack.Count > 0) _stack.Pop();
-    }
-
     private static bool IsStatement(string line, string keyword, out string rest)
     {
         rest = "";
@@ -85,10 +58,4 @@ internal sealed class BlockInterpreter
         return true;
     }
 
-    private sealed class Block
-    {
-        public bool ParentActive;
-        public bool ConditionTrue;
-        public bool Active;
-    }
 }

@@ -69,13 +69,6 @@ public class ConfigWindow : Window, IDisposable
             configuration.Save();
         }
 
-        var multiline = configuration.MultilineCommands;
-        if (ImGui.Checkbox("Multiline command entry", ref multiline))
-        {
-            configuration.MultilineCommands = multiline;
-            configuration.Save();
-        }
-
         var showLineNumbers = configuration.ShowLineNumbers;
         if (ImGui.Checkbox("Line numbers in the editor", ref showLineNumbers))
         {

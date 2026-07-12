@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Silkstring.Models;
 using Silkstring.Services.Conditions;
 
@@ -10,6 +11,7 @@ public static class AliasValidator
     public static List<Diagnostic> Validate(AliasEntry alias, ISet<string> definedVariables, bool allowUnsafe, IEnumerable<AliasEntry> allAliases)
     {
         var diagnostics = new List<Diagnostic>();
+        diagnostics.AddRange(ValidateTrigger(alias));
         diagnostics.AddRange(ValidateBlocks(alias));
         diagnostics.AddRange(ValidateSets(alias, definedVariables));
         diagnostics.AddRange(ValidateWaits(alias));
@@ -17,6 +19,22 @@ public static class AliasValidator
         var cycle = FindCycle(alias, allAliases);
         if (cycle.Count > 0) diagnostics.Add(new($"Cycle detected: {string.Join(" → ", cycle)}"));
         return diagnostics;
+    }
+
+    public static IEnumerable<Diagnostic> ValidateTrigger(AliasEntry alias)
+    {
+        var triggers = alias.Triggers;
+        if (alias.Triggers.Length == 0)
+        {
+            yield return new("This alias needs a trigger");
+            yield break;
+        }
+        foreach (var t in triggers)
+        {
+            if (AliasEntry.Blacklist.Contains(t)) yield return new($"\"{t}\" is a reserved name and cannot be used as a trigger");
+            else if (t.Contains(' ')) yield return new($"Trigger \"{t}\" cannot contain spaces");
+            else if (t.Contains('/')) yield return new($"Trigger \"{t}\" cannot contain a slash");
+        }
     }
 
     public static List<string> FindCycle(AliasEntry target, IEnumerable<AliasEntry> allAliases)
@@ -27,32 +45,7 @@ public static class AliasValidator
         return Dfs(target, lookup, visited, path);
     }
 
-    public static IEnumerable<Diagnostic> ValidateBlocks(AliasEntry alias)
-    {
-        var elseSeen = new Stack<bool>();
-        for (var i = 0; i < alias.Output.Count; i++)
-        {
-            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command.Trim());
-            switch (kind)
-            {
-                case BlockKind.If:
-                    if (!Condition.TryParse(expression, out _, out var error)) { yield return new($"Invalid condition: {error}", i); yield break; }
-                    elseSeen.Push(false);
-                    break;
-                case BlockKind.Else:
-                    if (elseSeen.Count == 0) { yield return new(":else without a matching :if", i); yield break; }
-                    if (elseSeen.Peek()) { yield return new("Duplicate :else in a block", i); yield break; }
-                    elseSeen.Pop();
-                    elseSeen.Push(true);
-                    break;
-                case BlockKind.EndIf:
-                    if (elseSeen.Count == 0) { yield return new(":endif without a matching :if", i); yield break; }
-                    elseSeen.Pop();
-                    break;
-            }
-        }
-        if (elseSeen.Count > 0) yield return new("Unclosed :if (missing :endif)");
-    }
+    public static IEnumerable<Diagnostic> ValidateBlocks(AliasEntry alias) => BlockParser.Parse(alias.Output.Select(c => c.Command).ToList()).Diagnostics;
 
     public static IEnumerable<Diagnostic> ValidateSets(AliasEntry alias, ISet<string> defined)
     {
@@ -97,7 +90,7 @@ public static class AliasValidator
         var lookup = new Dictionary<string, AliasEntry>(StringComparer.OrdinalIgnoreCase);
         foreach (var alias in allAliases)
         {
-            var triggers = alias.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var triggers = alias.Triggers;
             foreach (var trigger in triggers) lookup.TryAdd(trigger, alias);
         }
         return lookup;
@@ -121,7 +114,7 @@ public static class AliasValidator
     private static List<string> Dfs(
         AliasEntry current, Dictionary<string, AliasEntry> lookup, HashSet<string> visited, List<string> path)
     {
-        var triggers = current.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var triggers = current.Triggers;
         if (triggers.Length == 0) return new List<string>();
 
         var trigger = triggers[0];
@@ -129,7 +122,7 @@ public static class AliasValidator
 
         foreach (var dependency in GetDependencies(current, lookup))
         {
-            var depTrigger = dependency.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[0];
+            var depTrigger = dependency.Triggers[0];
 
             if (path.Contains(depTrigger))
             {

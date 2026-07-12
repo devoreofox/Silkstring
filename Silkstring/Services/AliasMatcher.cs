@@ -11,7 +11,7 @@ public static class AliasMatcher
     {
         return aliases.FirstOrDefault(a =>
                                           a.Enabled && a.IsValid() &&
-                                          a.Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                                          a.Triggers
                                            .Any(n => n.Equals(commandName, StringComparison.OrdinalIgnoreCase)));
     }
 }

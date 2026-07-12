@@ -39,7 +39,6 @@ public class Configuration : IPluginConfiguration
 
     public ThemeColors Theme = new();
     public bool ShowLineNumbers = true;
-    public bool MultilineCommands { get; set; }
 
     public void Save()
     {

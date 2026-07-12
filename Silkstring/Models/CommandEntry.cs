@@ -12,10 +12,6 @@ public class CommandEntry
 
     [NonSerialized]
     [JsonIgnore]
-    public bool Delete;
-
-    [NonSerialized]
-    [JsonIgnore]
     public int UniqueId;
 
     public CommandEntry()
