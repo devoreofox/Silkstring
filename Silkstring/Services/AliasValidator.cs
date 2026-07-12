@@ -7,6 +7,18 @@ namespace Silkstring.Services;
 
 public static class AliasValidator
 {
+    public static List<Diagnostic> Validate(AliasEntry alias, ISet<string> definedVariables, bool allowUnsafe, IEnumerable<AliasEntry> allAliases)
+    {
+        var diagnostics = new List<Diagnostic>();
+        diagnostics.AddRange(ValidateBlocks(alias));
+        diagnostics.AddRange(ValidateSets(alias, definedVariables));
+        diagnostics.AddRange(ValidateWaits(alias));
+        diagnostics.AddRange(ValidateUntils(alias, allowUnsafe));
+        var cycle = FindCycle(alias, allAliases);
+        if (cycle.Count > 0) diagnostics.Add(new($"Cycle detected: {string.Join(" → ", cycle)}"));
+        return diagnostics;
+    }
+
     public static List<string> FindCycle(AliasEntry target, IEnumerable<AliasEntry> allAliases)
     {
         var lookup = BuildTriggerLookup(allAliases);
@@ -15,76 +27,69 @@ public static class AliasValidator
         return Dfs(target, lookup, visited, path);
     }
 
-    public static string? ValidateBlocks(AliasEntry Alias)
+    public static IEnumerable<Diagnostic> ValidateBlocks(AliasEntry alias)
     {
         var elseSeen = new Stack<bool>();
-
-        foreach (var command in Alias.Output)
+        for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify((command.Command.Trim()));
-
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command.Trim());
             switch (kind)
             {
                 case BlockKind.If:
-                    try { new Parser(Tokenizer.Tokenize(expression)).Parse(); }
-                    catch (ConditionException ex) { return $"Invalid condition: {ex.Message}"; }
+                    if (!Condition.TryParse(expression, out _, out var error)) { yield return new($"Invalid condition: {error}", i); yield break; }
                     elseSeen.Push(false);
                     break;
                 case BlockKind.Else:
-                    if (elseSeen.Count == 0) return ":else without a matching :if";
-                    if (elseSeen.Peek()) return "Duplicate :else in a block";
+                    if (elseSeen.Count == 0) { yield return new(":else without a matching :if", i); yield break; }
+                    if (elseSeen.Peek()) { yield return new("Duplicate :else in a block", i); yield break; }
                     elseSeen.Pop();
                     elseSeen.Push(true);
                     break;
                 case BlockKind.EndIf:
-                    if (elseSeen.Count == 0) return ":endif without a matching :if";
+                    if (elseSeen.Count == 0) { yield return new(":endif without a matching :if", i); yield break; }
                     elseSeen.Pop();
                     break;
             }
         }
-        return elseSeen.Count > 0 ? "Unclosed :if (missing :endif)" : null;
+        if (elseSeen.Count > 0) yield return new("Unclosed :if (missing :endif)");
     }
 
-    public static string? ValidateSets(AliasEntry alias, ISet<string> defined)
+    public static IEnumerable<Diagnostic> ValidateSets(AliasEntry alias, ISet<string> defined)
     {
-        foreach (var command in alias.Output)
+        for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify(command.Command);
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command);
             if (kind != BlockKind.Set) continue;
             var (name, _) = BlockInterpreter.ParseSet(expression);
-            if (string.IsNullOrEmpty(name)) return ":set needs a variable name";
-            if (!defined.Contains(name)) return $"Unknown variable in :set: {name}";
+            if (string.IsNullOrEmpty(name)) { yield return new(":set needs a variable name", i); continue; }
+            if (!defined.Contains(name)) yield return new($"Unknown variable in :set: {name}", i);
         }
-        return null;
     }
 
-    public static string? ValidateWaits(AliasEntry alias)
+    public static IEnumerable<Diagnostic> ValidateWaits(AliasEntry alias)
     {
-        foreach (var command in alias.Output)
+        for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify(command.Command);
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command);
             if (kind != BlockKind.Wait) continue;
             var (value, _) = BlockInterpreter.ParseSet(expression);
-            if (string.IsNullOrEmpty(value)) return ":wait needs a duration";
+            if (string.IsNullOrEmpty(value)) { yield return new(":wait needs a duration", i); continue; }
             if (expression.Contains('{')) continue;
-            if (!BlockInterpreter.TryParseDuration(expression, out _)) return $"Invalid :wait duration: {expression}";
+            if (!BlockInterpreter.TryParseDuration(expression, out _)) yield return new($"Invalid :wait duration: {expression}", i);
         }
-        return null;
     }
 
-    public static string? ValidateUntils(AliasEntry alias, bool allowUnsafe)
+    public static IEnumerable<Diagnostic> ValidateUntils(AliasEntry alias, bool allowUnsafe)
     {
-        foreach (var command in alias.Output)
+        for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify(command.Command);
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command);
             if (kind != BlockKind.Until) continue;
             var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
-            if (string.IsNullOrWhiteSpace(condition)) return ":until needs a condition";
-            try { new Parser(Tokenizer.Tokenize(condition)).Parse(); }
-            catch (ConditionException ex) { return $"Invalid :until condition: {ex.Message}"; }
-            if (isUnsafe && !allowUnsafe) return "This :until uses -unsafe, but unsafe waits are off in settings";
+            if (string.IsNullOrWhiteSpace(condition)) { yield return new(":until needs a condition", i); continue; }
+            if (!Condition.TryParse(condition, out _, out var error)) { yield return new($"Invalid :until condition: {error}", i); continue; }
+            if (isUnsafe && !allowUnsafe) yield return new("This :until uses -unsafe, but unsafe waits are off in settings", i, Severity.Warning);
         }
-        return null;
     }
 
     private static Dictionary<string, AliasEntry> BuildTriggerLookup(IEnumerable<AliasEntry> allAliases)

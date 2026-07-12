@@ -6,9 +6,10 @@ internal enum TokenKind { Operand, Op, LParen, RParen }
 internal readonly record struct Token(TokenKind Kind, string Text);
 internal static class Tokenizer
 {
-    public static List<Token> Tokenize(string expr)
+    public static bool TryTokenize(string expr, out List<Token> tokens, out string? error)
     {
-        var tokens = new List<Token>();
+        tokens = new List<Token>();
+        error = null;
         var i = 0;
         while (i < expr.Length)
         {
@@ -24,12 +25,12 @@ internal static class Tokenizer
             }
 
             if (c is '<' or '>') { tokens.Add(new(TokenKind.Op, c.ToString())); i++; continue; }
-            if (c is '&' or '|' or '=' or '!') throw new ConditionException($"Unexpected '{c}'");
+            if (c is '&' or '|' or '=' or '!') { error = $"Unexpected '{c}'"; return false; }
 
             if (c == '"')
             {
                 var end = expr.IndexOf('"', i + 1);
-                if (end < 0) throw new ConditionException("Unterminated Quote");
+                if (end < 0) { error = "Unterminated quote"; return false; }
                 tokens.Add(new(TokenKind.Operand, expr[(i + 1)..end]));
                 i = end + 1;
                 continue;
@@ -39,7 +40,6 @@ internal static class Tokenizer
             while (i < expr.Length && !char.IsWhiteSpace(expr[i]) && expr[i] is not ('(' or ')' or '"' or '&' or '|' or '=' or '!' or '<' or '>')) i++;
             tokens.Add(new(TokenKind.Operand, expr[start..i]));
         }
-
-        return tokens;
+        return true;
     }
 }

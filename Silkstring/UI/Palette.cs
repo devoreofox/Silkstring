@@ -12,6 +12,7 @@ public static class Palette
     public static Vector4 Command;
     public static Vector4 Text;
     public static Vector4 Error;
+    public static Vector4 Warning;
     public static Vector4 Heading;
     public static Vector4 Folder;
     public static Vector4 Success;
@@ -27,6 +28,7 @@ public static class Palette
         Command = t.Command;
         Text = t.Text;
         Error = t.Error;
+        Warning = t.Warning;
         Heading = t.Heading;
         Folder = t.Folder;
         Success = t.Success;

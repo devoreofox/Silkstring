@@ -100,18 +100,7 @@ public class CommandHandler
         }
     }
 
-    private bool EvaluateSafe(string expression, IReadOnlyList<string> args)
-    {
-        try
-        {
-            return _conditions.Evaluate(expression, args);
-        }
-        catch (ConditionException ex)
-        {
-            Log.Warning(ex, "Invalid condition: {Expression}", expression);
-            return false;
-        }
-    }
+    private bool EvaluateSafe(string expression, IReadOnlyList<string> args) => _conditions.Evaluate(expression, args);
 
     private async Task WaitUntilAsync(string condition, IReadOnlyList<string> args, bool isUnsafe, int capMs, CancellationToken token)
     {
