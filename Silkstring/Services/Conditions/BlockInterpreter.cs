@@ -12,7 +12,8 @@ internal enum BlockKind
     EndIf,
     Set,
     Wait,
-    Until
+    Until,
+    Comment
 }
 
 internal sealed class BlockInterpreter
@@ -22,6 +23,7 @@ internal sealed class BlockInterpreter
 
     public static (BlockKind Kind, string Expression) Classify(string line)
     {
+        if (line.StartsWith("#")) return (BlockKind.Comment, line);
         if (line.StartsWith(":if ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.If, line[4..]);
         if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
         if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");

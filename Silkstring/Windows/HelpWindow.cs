@@ -412,6 +412,7 @@ public class HelpWindow : Window, IDisposable
             DrawColorRow(Palette.String, "Quoted text", "\"Jane Doe\"", "A quoted value kept as one piece");
             DrawColorRow(Palette.Flag, "Flag", "-unsafe", "An option that changes how a line behaves");
             DrawColorRow(Palette.Error, "Problem", ":wait abc", "Something malformed that will not work as written");
+            DrawColorRow(Palette.Comment, "Comment", "# my note", "A note to yourself, ignored when the alias runs");
             ImGui.EndTable();
         }
         ImGui.Spacing();

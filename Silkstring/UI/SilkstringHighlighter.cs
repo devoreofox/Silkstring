@@ -77,6 +77,10 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
                 else Paint(line, exprStart, text.Length, Error);
                 break;
 
+            case BlockKind.Comment:
+                Paint(line, indent, text.Length, PaletteIndex.Comment);
+                break;
+
             default:
                 if (body.Length > 1 && body[0] == ':' && char.IsLetter(body[1]))
                 {
@@ -162,6 +166,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         r.SetColor(PaletteIndex.CharLiteral, U32(Palette.Error));
         r.SetColor(PaletteIndex.LineNumber, U32(Palette.LineNumber));
         r.SetColor(PaletteIndex.Preprocessor, U32(Palette.Flag));
+        r.SetColor(PaletteIndex.Comment, U32(Palette.Comment));
     }
 
     private static uint U32(Vector4 c) => ImGui.ColorConvertFloat4ToU32(c);
