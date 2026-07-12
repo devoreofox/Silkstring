@@ -163,7 +163,7 @@ public class AliasEditPanel
 
     private static void ApplyMultiline(AliasEntry alias, string text)
     {
-        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var lines = text.Split('\n');
 
         for (var i = 0; i < lines.Length; i++)
         {

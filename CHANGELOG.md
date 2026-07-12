@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.6.2.0 - 2026-07-11
+### Added
+- Blank lines and indentation in the multiline editor are now kept when you save, so you can space out and indent longer aliases to make them easier to read
+- Indented lines are now colored correctly in the editor
+
+### Changed
+- The alias editor now lists every problem with an alias at once, each with its line number, instead of stopping at the first one it finds
+- Problems are now colored by how serious they are, so warnings stand out from errors
+- A cycle warning (an alias that would trigger itself) now shows alongside the other problems, instead of only appearing when you hovered over the trigger box
+
 ## v1.6.1.0 - 2026-07-09
 ### Added
 - Time variables: your aliases can now react to the clock. `{time}` shows your local time (like 3:45 PM), `{time24}` shows it in 24-hour form (15:45), and `{date}`, `{day}`, `{hour}`, and `{minute}` fill in the rest. `{daypart}` gives morning, afternoon, evening, or night, so a venue greeter can open with something like `Good {daypart}, welcome in!`
