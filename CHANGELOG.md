@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.3.0 - 2026-07-11
+### Added
+- Comments: any line that starts with `#` is now a note to yourself. It is left out when the alias runs and shown in its own color (which you can change in the settings), so you can label your aliases or jot down reminders. 
+- `# meow ♥`
+
 ## v1.6.2.0 - 2026-07-11
 ### Added
 - Blank lines and indentation in the multiline editor are now kept when you save, so you can space out and indent longer aliases to make them easier to read

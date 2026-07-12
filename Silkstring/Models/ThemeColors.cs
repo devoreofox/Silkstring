@@ -17,4 +17,5 @@ public class ThemeColors
     public Vector4 Flag = new(0.85f, 0.55f, 0.85f, 1.0f);
     public Vector4 String = new(0.6f, 0.8f, 0.5f, 1.0f);
     public Vector4 Text = new(0.9f, 0.9f, 0.9f, 1.0f);
+    public Vector4 Comment = new(0.45f, 0.55f, 0.45f, 1.0f);
 }

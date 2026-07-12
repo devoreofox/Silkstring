@@ -67,7 +67,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
                 {
                     var args = ArgumentParser.Parse(inputString[splitString[0].Length..].TrimStart());
                     var commands = alias.Output
-                                        .Where(c => !string.IsNullOrWhiteSpace(c.Command))
+                                        .Where(c => !string.IsNullOrWhiteSpace(c.Command) && !c.Command.TrimStart().StartsWith('#'))
                                         .Select(c => c.Command.Trim())
                                         .ToList();
                     var names = alias.Name.Split('|', StringSplitOptions.RemoveEmptyEntries |

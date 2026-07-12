@@ -18,6 +18,7 @@ public static class Palette
     public static Vector4 Success;
     public static Vector4 LineNumber;
     public static Vector4 Flag;
+    public static Vector4 Comment;
 
     public static void Apply(ThemeColors t)
     {
@@ -34,5 +35,6 @@ public static class Palette
         Success = t.Success;
         LineNumber = t.LineNumber;
         Flag = t.Flag;
+        Comment = t.Comment;
     }
 }
