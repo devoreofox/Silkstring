@@ -37,25 +37,26 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
             line[i] = new Glyph(line[i].Char, PaletteIndex.Default);
         }
         var text = new string(chars);
+        var indent = text.Length - text.TrimStart().Length;
+        var body = text.TrimStart();
 
-        var (kind, expression) = BlockInterpreter.Classify(text);
-        var exprStart = text.Length - expression.Length;
-
+        var (kind, expression) = BlockInterpreter.Classify(body);
+        var exprStart = indent + body.Length - expression.Length;
         switch (kind)
         {
             case BlockKind.If:
-                Paint(line, 0, exprStart, PaletteIndex.Keyword);
+                Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 if (TryParseCondition(expression)) PaintContent(line, text, exprStart);
                 else Paint(line, exprStart, text.Length, Error);
                 break;
 
             case BlockKind.Else:
             case BlockKind.EndIf:
-                Paint(line, 0, exprStart, PaletteIndex.Keyword);
+                Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 break;
 
             case BlockKind.Set:
-                Paint(line, 0, exprStart, PaletteIndex.Keyword);
+                Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 var (name, _) = BlockInterpreter.ParseSet(expression);
                 if (name.Length == 0 || !_definedVariables().Contains(name))
                     Paint(line, exprStart, exprStart + Math.Max(name.Length, 1), Error);
@@ -63,35 +64,35 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
                 break;
 
             case BlockKind.Wait:
-                Paint(line, 0, exprStart, PaletteIndex.Keyword);
+                Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 if (!expression.Contains('{') && !BlockInterpreter.TryParseDuration(expression.Trim(), out _))
                     Paint(line, exprStart, text.Length, Error);
                 else PaintContent(line, text, exprStart);
                 break;
 
             case BlockKind.Until:
-                Paint(line, 0, exprStart, PaletteIndex.Keyword);
+                Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 var (_, untilCond) = BlockInterpreter.ParseUntil(expression);
                 if (TryParseCondition(untilCond)) PaintContent(line, text, exprStart);
                 else Paint(line, exprStart, text.Length, Error);
                 break;
 
             default:
-                if (text.Length > 1 && text[0] == ':' && char.IsLetter(text[1]))
+                if (body.Length > 1 && body[0] == ':' && char.IsLetter(body[1]))
                 {
-                    var kw = text.IndexOf(' ');
-                    if (kw < 0) kw = text.Length;
-                    Paint(line, 0, kw, Error);
-                    PaintContent(line, text, kw);
+                    var kw = body.IndexOf(' ');
+                    if (kw < 0) kw = body.Length;
+                    Paint(line, indent, indent + kw, Error);
+                    PaintContent(line, text, indent + kw);
                 }
                 else
                 {
-                    if (text.StartsWith('/'))
+                    if (body.StartsWith('/'))
                     {
-                        var end = text.IndexOf(' ');
-                        Paint(line, 0, end < 0 ? text.Length : end, PaletteIndex.KnownIdentifier);
+                        var end = body.IndexOf(' ');
+                        Paint(line, indent, indent + (end < 0 ? body.Length : end), PaletteIndex.KnownIdentifier);
                     }
-                    PaintContent(line, text, 0);
+                    PaintContent(line, text, indent);
                 }
                 break;
         }

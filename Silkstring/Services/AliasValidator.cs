@@ -58,7 +58,7 @@ public static class AliasValidator
     {
         for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command);
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command.Trim());
             if (kind != BlockKind.Set) continue;
             var (name, _) = BlockInterpreter.ParseSet(expression);
             if (string.IsNullOrEmpty(name)) { yield return new(":set needs a variable name", i); continue; }
@@ -70,7 +70,7 @@ public static class AliasValidator
     {
         for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command);
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command.Trim());
             if (kind != BlockKind.Wait) continue;
             var (value, _) = BlockInterpreter.ParseSet(expression);
             if (string.IsNullOrEmpty(value)) { yield return new(":wait needs a duration", i); continue; }
@@ -83,7 +83,7 @@ public static class AliasValidator
     {
         for (var i = 0; i < alias.Output.Count; i++)
         {
-            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command);
+            var (kind, expression) = BlockInterpreter.Classify(alias.Output[i].Command.Trim());
             if (kind != BlockKind.Until) continue;
             var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
             if (string.IsNullOrWhiteSpace(condition)) { yield return new(":until needs a condition", i); continue; }
