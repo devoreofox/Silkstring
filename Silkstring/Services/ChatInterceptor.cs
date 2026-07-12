@@ -70,8 +70,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
                                         .Where(c => !string.IsNullOrWhiteSpace(c.Command) && !c.Command.TrimStart().StartsWith('#'))
                                         .Select(c => c.Command.Trim())
                                         .ToList();
-                    var names = alias.Name.Split('|', StringSplitOptions.RemoveEmptyEntries |
-                                                      StringSplitOptions.TrimEntries);
+                    var names = alias.Triggers;
 
                     foreach (var name in names) _executingAliases.Add(name);
 

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
-using Dalamud.Interface.Components;
 using ImGuiColorTextEditNet;
 using Silkstring.Models;
 using Silkstring.Services;
@@ -51,12 +49,12 @@ public class AliasEditPanel
         ImGui.Separator();
         foreach (var d in _diagnostics)
         {
+            if (d.Line is not null) continue;
             var color = d.Severity == Severity.Error ? Palette.Error : Palette.Warning;
-            var prefix = d.Line is { } line ? $"Line {line + 1}: " : "";
-            ImGui.TextColored(color, prefix + d.Message);
+            ImGui.TextColored(color, d.Message);
         }
         if (_diagnostics.Count > 0) ImGui.Spacing();
-        DrawCommandList(alias);
+        DrawCommands(alias);
     }
 
     private void DrawEmptyState()
@@ -84,19 +82,7 @@ public class AliasEditPanel
         ImGuiUtil.Tooltip("Separate multiple aliases with | e.g. mew|meow|mreow");
     }
 
-    private void DrawCommandList(AliasEntry alias)
-    {
-        if (_configuration.MultilineCommands)
-        {
-            DrawMultilineView(alias);
-        }
-        else
-        {
-            DrawListView(alias);
-        }
-    }
-
-    private void DrawMultilineView(AliasEntry alias)
+    private void DrawCommands(AliasEntry alias)
     {
         if (_editorAliasId != alias.UniqueId)
         {
@@ -117,48 +103,15 @@ public class AliasEditPanel
         }
     }
 
-    private void DrawListView(AliasEntry alias)
-    {
-        ImGui.Text("Commands:");
-        ImGui.BeginChild("###commandList");
-        foreach (var command in alias.Output)
-        {
-            DrawCommandRow(command);
-        }
-
-        alias.Output.RemoveAll(c => c.Delete);
-
-        if (ImGuiComponents.IconButton((int)FontAwesomeIcon.Plus, FontAwesomeIcon.Plus))
-        {
-            alias.Output.Add(new CommandEntry());
-            _configuration.Save();
-        }
-        ImGuiUtil.Tooltip("Add Command");
-        ImGui.EndChild();
-    }
-
-    private void DrawCommandRow(CommandEntry command)
-    {
-        ImGui.SetNextItemWidth(-60);
-        if (ImGui.InputText($"###cmd{command.UniqueId}", ref command.Command, 200))
-        {
-            _configuration.MarkDirty();
-            RefreshDiagnostics();
-        }
-        ImGui.SameLine();
-
-        var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
-        ImGui.BeginDisabled(!canDelete);
-        if (ImGuiComponents.IconButton(command.UniqueId, FontAwesomeIcon.Trash)) command.Delete = true;
-        ImGui.EndDisabled();
-        ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
-    }
-
     private void RefreshDiagnostics()
     {
-        if (_selectedAlias == null) { _diagnostics.Clear(); return; }
+        if (_selectedAlias == null) { _diagnostics.Clear(); _editor.ErrorMarkers.SetErrorMarkers(new()); return; }
         var defined = new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase);
         _diagnostics = AliasValidator.Validate(_selectedAlias, defined, _configuration.AllowUnsafeWaits, _configuration.GetAliases());
+        var markers = new Dictionary<int, object>();
+        foreach (var d in _diagnostics)
+            if (d.Line is { } ln) markers[ln + 1] = d.Message;
+        _editor.ErrorMarkers.SetErrorMarkers(markers);
     }
 
     private static void ApplyMultiline(AliasEntry alias, string text)

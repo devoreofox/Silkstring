@@ -46,15 +46,13 @@ public class AliasValidatorTests
         Assert.Empty(AliasValidator.FindCycle(a, new[] { a }));
     }
 
-    [Fact] public void ValidIf() => Assert.Empty(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} < 50", "/echo", ":endif")));
-    [Fact] public void ValidIfElse() => Assert.Empty(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} < 50", "/a", ":else", "/b", ":endif")));
-    [Fact] public void NestedValid() => Assert.Empty(AliasValidator.ValidateBlocks(Alias("a", ":if {a} == 1", ":if {b} == 2", "/c", ":endif", ":endif")));
-    [Fact] public void NoBlocks() => Assert.Empty(AliasValidator.ValidateBlocks(Alias("a", "/say hi")));
-    [Fact] public void Unclosed() => Assert.NotEmpty(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} < 50", "/a")));
-    [Fact] public void OrphanElse() => Assert.NotEmpty(AliasValidator.ValidateBlocks(Alias("a", ":else")));
-    [Fact] public void OrphanEndIf() => Assert.NotEmpty(AliasValidator.ValidateBlocks(Alias("a", ":endif")));
-    [Fact] public void DuplicateElse() => Assert.NotEmpty(AliasValidator.ValidateBlocks(Alias("a", ":if {a} == 1", ":else", ":else", ":endif")));
-    [Fact] public void BadExpression() => Assert.NotEmpty(AliasValidator.ValidateBlocks(Alias("a", ":if {hp} <=", ":endif")));
+    [Fact] public void ValidBraceBlock() => Assert.Empty(AliasValidator.ValidateBlocks(Alias("a", "if (1 == 1) {", "/echo", "}")));
+    [Fact] public void UnclosedBraceBlock() => Assert.NotEmpty(AliasValidator.ValidateBlocks(Alias("a", "if (1 == 1) {", "/echo")));
+
+    [Fact] public void TriggerMissing() => Assert.NotEmpty(AliasValidator.ValidateTrigger(Alias("")));
+    [Fact] public void TriggerValid() => Assert.Empty(AliasValidator.ValidateTrigger(Alias("greet")));
+    [Fact] public void TriggerWithSpace() => Assert.NotEmpty(AliasValidator.ValidateTrigger(Alias("hello world")));
+    [Fact] public void TriggerReserved() => Assert.NotEmpty(AliasValidator.ValidateTrigger(Alias("silkstring")));
 
     [Fact] public void SetKnown() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined("foo")));
     [Fact] public void SetCaseInsensitive() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", ":set FOO bar"), Defined("foo")));

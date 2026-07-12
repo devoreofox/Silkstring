@@ -7,29 +7,22 @@ namespace Silkstring.Services.Conditions;
 internal enum BlockKind
 {
     Command,
-    If,
-    Else,
-    EndIf,
     Set,
     Wait,
     Until,
-    Comment
+    Comment,
+    Return
 }
 
-internal sealed class BlockInterpreter
+internal static class BlockInterpreter
 {
-    private readonly Stack<Block> _stack = new();
-    public bool Active => _stack.Count == 0 || _stack.Peek().Active;
-
     public static (BlockKind Kind, string Expression) Classify(string line)
     {
         if (line.StartsWith("#")) return (BlockKind.Comment, line);
-        if (line.StartsWith(":if ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.If, line[4..]);
-        if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
-        if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
-        if (line.StartsWith(":set ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Set, line[5..]);
-        if (line.StartsWith(":wait ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Wait, line[6..]);
-        if (line.StartsWith(":until ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Until, line[7..]);
+        if (line.Equals(":return", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Return, "");
+        if (IsStatement(line, ":set", out var set)) return (BlockKind.Set, set);
+        if (IsStatement(line, ":wait", out var wait)) return (BlockKind.Wait, wait);
+        if (IsStatement(line, ":until", out var until)) return (BlockKind.Until, until);
         return (BlockKind.Command, line);
     }
 
@@ -56,28 +49,13 @@ internal sealed class BlockInterpreter
         return true;
     }
 
-    public void EnterIf(bool conditionMet)
+    private static bool IsStatement(string line, string keyword, out string rest)
     {
-        var parentActive = Active;
-        _stack.Push(new Block { ParentActive = parentActive, ConditionTrue = conditionMet, Active = parentActive && conditionMet });
+        rest = "";
+        if (line.Equals(keyword, StringComparison.OrdinalIgnoreCase)) return true;
+        if (!line.StartsWith(keyword + " ", StringComparison.OrdinalIgnoreCase)) return false;
+        rest = line[(keyword.Length + 1)..];
+        return true;
     }
 
-    public void Else()
-    {
-        if (_stack.Count == 0) return;
-        var block = _stack.Peek();
-        block.Active = block.ParentActive && !block.ConditionTrue;
-    }
-
-    public void EndIf()
-    {
-        if (_stack.Count > 0) _stack.Pop();
-    }
-
-    private sealed class Block
-    {
-        public bool ParentActive;
-        public bool ConditionTrue;
-        public bool Active;
-    }
 }

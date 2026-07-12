@@ -25,79 +25,82 @@ public class CommandHandler
 
     public async Task ExecuteAsync(IReadOnlyList<string> commands, IReadOnlyList<string> args, int delayMs = 100, CancellationToken cancellationToken = default, Func<string, bool>? shouldSkip = null, int untilTimeoutMs = 30000, bool allowUnsafe = false)
     {
-        var blocks = new BlockInterpreter();
+        var (tree, diagnostics) = BlockParser.Parse(commands);
+        if (diagnostics.Count > 0)
+        {
+            Log.Warning("Alias not run: {Count} syntax error(s), first: {Message}", diagnostics.Count, diagnostics[0].Message);
+            return;
+        }
         var sent = false;
 
-        foreach (var line in commands)
+        async Task<bool> RunNodes(IReadOnlyList<BlockNode> nodes)
         {
-            var (kind, expression) = BlockInterpreter.Classify(line);
-
-            if (kind == BlockKind.If)
+            foreach (var node in nodes)
             {
-                var met = blocks.Active && await _framework.RunOnFrameworkThread(() => EvaluateSafe(expression, args));
-                blocks.EnterIf(met);
-                continue;
+                bool halt;
+                if (node is IfNode ifn) halt = await RunIf(ifn);
+                else if (node is LineNode line) halt = await RunLine(line.Text);
+                else halt = false;
+                if (halt) return true;
             }
+            return false;
+        }
 
-            if (kind == BlockKind.Else) { blocks.Else(); continue; }
-            if (kind == BlockKind.EndIf) { blocks.EndIf(); continue; }
+        async Task<bool> RunIf(IfNode ifn)
+        {
+            foreach (var branch in ifn.Branches)
+            {
+                var take = branch.Condition == null || await _framework.RunOnFrameworkThread(() => EvaluateSafe(branch.Condition!, args));
+                if (take) return await RunNodes(branch.Body);
+            }
+            return false;
+        }
 
+        async Task<bool> RunLine(string text)
+        {
+            var (kind, expression) = BlockInterpreter.Classify(text);
+            if (kind == BlockKind.Return) return true;
             if (kind == BlockKind.Set)
             {
-                if (blocks.Active)
+                var (name, rawValue) = BlockInterpreter.ParseSet(expression);
+                await _framework.RunOnFrameworkThread(() =>
                 {
-                    var (name, rawValue) = BlockInterpreter.ParseSet(expression);
-                    await _framework.RunOnFrameworkThread(() =>
-                    {
-                        if (!_setUserVariable(name, _resolver.Resolve(rawValue, args)))
-                            Log.Warning("Unknown user variable in :set: {Name}", name);
-                    });
-                }
-                continue;
+                    if (!_setUserVariable(name, _resolver.Resolve(rawValue, args)))
+                        Log.Warning("Unknown user variable in set: {Name}", name);
+                });
+                return false;
             }
-
             if (kind == BlockKind.Wait)
             {
-                if (blocks.Active)
-                {
-                    var resolved = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(expression, args));
-                    if (BlockInterpreter.TryParseDuration(resolved, out var ms))
-                        await Task.Delay(ms, cancellationToken);
-                    else
-                        Log.Warning("Invalid :wait duration: {Duration}", resolved);
-                }
-                continue;
+                var resolved = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(expression, args));
+                if (BlockInterpreter.TryParseDuration(resolved, out var ms)) await Task.Delay(ms, cancellationToken);
+                else Log.Warning("Invalid wait duration: {Duration}", resolved);
+                return false;
             }
-
             if (kind == BlockKind.Until)
             {
-                if (blocks.Active)
-                {
-                    var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
-                    await WaitUntilAsync(condition, args, isUnsafe && allowUnsafe, untilTimeoutMs, cancellationToken);
-                }
-                continue;
+                var (isUnsafe, condition) = BlockInterpreter.ParseUntil(expression);
+                await WaitUntilAsync(condition, args, isUnsafe && allowUnsafe, untilTimeoutMs, cancellationToken);
+                return false;
             }
-
-            if (!blocks.Active) continue;
-
-            var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(line, args));
+            var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(text, args));
             if (shouldSkip != null && cmd.StartsWith("/"))
             {
                 var parts = cmd.TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 0) continue;
+                if (parts.Length == 0) return false;
                 if (shouldSkip(parts[0]))
                 {
                     Log.Warning("Skipping recursive command: {Command}", cmd);
-                    continue;
+                    return false;
                 }
             }
-
             if (sent) await Task.Delay(delayMs, cancellationToken);
             await _framework.RunOnFrameworkThread(() => Chat.SendMessage(cmd));
             sent = true;
-
+            return false;
         }
+
+        await RunNodes(tree);
     }
 
     private bool EvaluateSafe(string expression, IReadOnlyList<string> args) => _conditions.Evaluate(expression, args);
