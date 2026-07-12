@@ -27,9 +27,9 @@ internal sealed class BlockInterpreter
         if (line.StartsWith(":if ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.If, line[4..]);
         if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
         if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
-        if (line.StartsWith(":set ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Set, line[5..]);
-        if (line.StartsWith(":wait ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Wait, line[6..]);
-        if (line.StartsWith(":until ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Until, line[7..]);
+        if (IsStatement(line, ":set", out var set)) return (BlockKind.Set, set);
+        if (IsStatement(line, ":wait", out var wait)) return (BlockKind.Wait, wait);
+        if (IsStatement(line, ":until", out var until)) return (BlockKind.Until, until);
         return (BlockKind.Command, line);
     }
 
@@ -72,6 +72,15 @@ internal sealed class BlockInterpreter
     public void EndIf()
     {
         if (_stack.Count > 0) _stack.Pop();
+    }
+
+    private static bool IsStatement(string line, string keyword, out string rest)
+    {
+        rest = "";
+        if (line.Equals(keyword, StringComparison.OrdinalIgnoreCase)) return true;
+        if (!line.StartsWith(keyword + " ", StringComparison.OrdinalIgnoreCase)) return false;
+        rest = line[(keyword.Length + 1)..];
+        return true;
     }
 
     private sealed class Block

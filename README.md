@@ -7,6 +7,7 @@ A Dalamud plugin for FFXIV that lets you define custom command aliases. Each ali
 - Define custom aliases through an in-game GUI
 - Run multiple lines per alias, in order, with a configurable delay between them
 - Mix game commands and chat messages in a single alias
+- Leave notes in an alias with `#` comment lines
 - Insert live game state with variables such as `{character}` and `{job}`
 - Define your own variables and change them on the fly from inside an alias
 - Give an alias several triggers using a `|` separator
@@ -78,6 +79,19 @@ Each line of an alias is sent exactly as written:
 good luck, everyone!
 ```
 This runs `/say Hello!`, then `/emote waves`, then sends "good luck, everyone!" to your current channel.
+
+### Comments
+
+Any line that starts with `#` is a comment. It is left out when the alias runs and shown in its own color in the editor, so you can label an alias or leave yourself notes:
+
+```
+# heal the party if anyone is hurt
+:if {hpp} < 50
+/ac Medica II
+:endif
+```
+
+Only whole lines are comments. A `#` partway through a line is treated as normal text, so `/say I'm #1!` still sends as written. You can change the comment color in the settings.
 
 ### Variables
 

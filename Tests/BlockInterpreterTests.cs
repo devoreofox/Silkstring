@@ -11,10 +11,10 @@ public class BlockInterpreterTests
     [InlineData(":ifx", "Command", ":ifx")]
     [InlineData(":set foo bar", "Set", "foo bar")]
     [InlineData(":SET foo bar", "Set", "foo bar")]
-    [InlineData(":set", "Command", ":set")]
+    [InlineData(":set", "Set", "")]
     [InlineData(":wait 2", "Wait", "2")]
     [InlineData(":WAIT 1.5", "Wait", "1.5")]
-    [InlineData(":wait", "Command", ":wait")]
+    [InlineData(":wait", "Wait", "")]
     public void Classifies(string line, string kind, string expression)
     {
         var (k, e) = BlockInterpreter.Classify(line);
