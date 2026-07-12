@@ -29,7 +29,7 @@ public class Configuration : IPluginConfiguration
     }
     public bool AllowUnsafeWaits { get; set; }
 
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
     public string? LastSeenVersion { get; set; }
     public int Version { get; set; } = CurrentVersion;
 
