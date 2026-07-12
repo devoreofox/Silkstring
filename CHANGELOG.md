@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.0.0.0 - 2026-07-12
+### Changed
+- Conditionals now use braces. Open a block with `if (condition) {`, close it with `}`, and use `else {` or `else if (condition) {` for the other branches. This replaces the old `:if`, `:else`, and `:endif` lines. Your existing conditional aliases are converted to the new format automatically the first time you update
+- The alias editor is now always the syntax highlighted multiline text box. The old row by row list view has been removed
+- R.I.P List view (I don't think anyone used this, you won't be missed.. hopefully? c:)
+
+### Added
+- `else if` chains conditions together, running the first branch whose condition is true
+- A `:return` line stops the rest of an alias right away, which makes a handy early exit, for example checking something at the top of an alias and bailing out
+- The editor now marks any line with a problem: the line is highlighted and hovering it tells you what is wrong, on top of the list of problems shown above the editor
+- The editor warns you when an alias has no trigger, or a trigger with a space, a slash, or a reserved name
+- Tab indents lines in the editor and Shift + Tab removes indentation, so you can format blocks quickly
+
+### Notes
+- Your conditional aliases are rewritten from the old `:if` style to braces automatically on update, and a backup of your previous configuration is saved first (for example `Silkstring.v2.backup.json`)
+
 ## v1.6.3.0 - 2026-07-11
 ### Added
 - Comments: any line that starts with `#` is now a note to yourself. It is left out when the alias runs and shown in its own color (which you can change in the settings), so you can label your aliases or jot down reminders. 

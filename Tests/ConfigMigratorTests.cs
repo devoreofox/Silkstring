@@ -16,7 +16,7 @@ public class ConfigMigratorTests
         }};
         ConfigMigrator.MigrateAliasToV3(alias);
         Assert.Equal(
-            new[] { "if ({hp} < 50) {", "/a", "}", "else {", "/b", "}" },
+            new[] { "if ({hp} < 50) {", "    /a", "}", "else {", "    /b", "}" },
             alias.Output.Select(c => c.Command));
     }
 
@@ -33,7 +33,7 @@ public class ConfigMigratorTests
         }};
         ConfigMigrator.MigrateAliasToV3(alias);
         Assert.Equal(
-            new[] { "if ({a} == 1) {", "if ({b} == 2) {", "/c", "}", "}" },
+            new[] { "if ({a} == 1) {", "    if ({b} == 2) {", "        /c", "    }", "}" },
             alias.Output.Select(c => c.Command));
     }
 

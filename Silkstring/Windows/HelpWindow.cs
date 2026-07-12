@@ -179,7 +179,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextColored(Palette.Heading, "Conditionals");
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("Run commands only when a condition is true with :if / :else / :endif blocks, pause with :wait, and hold until something happens with :until. See the Conditionals tab.");
+        ImGui.TextWrapped("Run commands only when a condition is true with if / else blocks, pause with :wait, hold until something happens with :until, and stop early with :return. See the Conditionals tab.");
         ImGui.Spacing();
 
         ImGui.TextColored(Palette.Heading, "Macros");
@@ -330,20 +330,22 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextColored(Palette.Heading, "What are Conditionals?");
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("Conditionals let an alias run some commands only when a condition is true. They use block syntax: everything between :if and :endif runs only when the condition holds.");
+        ImGui.TextWrapped("Conditionals let an alias run some commands only when a condition is true. They use braces: everything inside the braces after if (...) runs only when the condition holds.");
         ImGui.Spacing();
         ImGui.Indent();
-        ImGui.TextDisabled(":if {hpp} < 50");
-        ImGui.TextDisabled("/ac Cure");
-        ImGui.TextDisabled(":else");
-        ImGui.TextDisabled("/say all good");
-        ImGui.TextDisabled(":endif");
+        ImGui.TextDisabled("if ({hpp} < 50) {");
+        ImGui.TextDisabled("    /ac Cure");
+        ImGui.TextDisabled("}");
+        ImGui.TextDisabled("else {");
+        ImGui.TextDisabled("    /say all good");
+        ImGui.TextDisabled("}");
         ImGui.Unindent();
         ImGui.Spacing();
         ImGui.BulletText("A block can hold multiple commands, all gated by the same condition.");
-        ImGui.BulletText("The :else block is optional and runs when the condition is false.");
-        ImGui.BulletText("Blocks can be nested inside other blocks.");
-        ImGui.BulletText("The :if, :else, and :endif lines are never sent to chat.");
+        ImGui.BulletText("Add an else { } block for the other case.");
+        ImGui.BulletText("Chain checks with else if (...), which runs the first branch that is true.");
+        ImGui.BulletText("Blocks can be nested. Indent with Tab and remove indentation with Shift + Tab.");
+        ImGui.BulletText("A :return line stops the rest of the alias, handy as an early exit.");
         ImGui.Spacing();
 
         ImGui.TextColored(Palette.Heading, "Conditions");
@@ -352,9 +354,9 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("A condition either compares two values, or checks a true/false variable on its own. Comparisons can be combined with and (&&) and or (||).");
         ImGui.Spacing();
         ImGui.Indent();
-        ImGui.TextDisabled(":if {hpp} < 50 && {incombat}");
-        ImGui.TextDisabled(":if {job} == WHM || {job} == SCH");
-        ImGui.TextDisabled(":if {incombat}");
+        ImGui.TextDisabled("if ({hpp} < 50 && {incombat}) {");
+        ImGui.TextDisabled("if ({job} == WHM || {job} == SCH) {");
+        ImGui.TextDisabled("if ({incombat}) {");
         ImGui.Unindent();
         ImGui.Spacing();
         ImGui.TextWrapped("Operators: == and != for equality, < > <= >= for numbers, plus && and || to combine. Text comparisons are case-insensitive, and numbers compare as numbers.");
@@ -362,7 +364,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("Either side of a comparison can be a variable, a parameter, or plain text, so a condition can react to game state or to what you typed:");
         ImGui.Spacing();
         ImGui.Indent();
-        ImGui.TextDisabled(":if {0} == on");
+        ImGui.TextDisabled("if ({0} == on) {");
         ImGui.Unindent();
         ImGui.Spacing();
 
@@ -406,7 +408,7 @@ public class HelpWindow : Window, IDisposable
             ImGui.TableSetupColumn("Example", ImGuiTableColumnFlags.WidthFixed, 200);
             ImGui.TableSetupColumn("Meaning", ImGuiTableColumnFlags.WidthStretch);
             DrawColorRow(Palette.Command, "Command", "/emote waves", "A line that runs as a game command");
-            DrawColorRow(Palette.Keyword, "Keyword", ":if  :until  :wait", "Control words that shape how an alias runs");
+            DrawColorRow(Palette.Keyword, "Keyword", "if  else  :wait", "Control words that shape how an alias runs");
             DrawColorRow(Palette.Variable, "Variable", "{character}", "A value filled in when the alias runs");
             DrawColorRow(Palette.Parameter, "Parameter", "{0}  {1..}", "An argument typed after the trigger");
             DrawColorRow(Palette.String, "Quoted text", "\"Jane Doe\"", "A quoted value kept as one piece");

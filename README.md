@@ -17,6 +17,7 @@ A Dalamud plugin for FFXIV that lets you define custom command aliases. Each ali
 - Enable or disable an alias without deleting it
 - Built-in help window with a live command tester
 - Syntax highlighting in the multiline editor, with customizable colors
+- Run commands only when a condition is true with `if` / `else if` / `else` blocks
 - Hold an alias until a condition is met with `:until`, and stop running aliases with `/silkstring cancel`
 - Cycle detection warns you if aliases would trigger each other in a loop
 
@@ -86,9 +87,9 @@ Any line that starts with `#` is a comment. It is left out when the alias runs a
 
 ```
 # heal the party if anyone is hurt
-:if {hpp} < 50
-/ac Medica II
-:endif
+if ({hpp} < 50) {
+    /ac Medica II
+}
 ```
 
 Only whole lines are comments. A `#` partway through a line is treated as normal text, so `/say I'm #1!` still sends as written. You can change the comment color in the settings.
@@ -133,30 +134,55 @@ If you reference an argument that was not supplied, it is left as written (e.g. 
 
 ### Conditionals
 
-Aliases can run commands only when a condition is true, using `:if` / `:else` / `:endif` blocks:
+Aliases can run commands only when a condition is true, using `if` blocks with braces:
 
 ```
-:if {hpp} < 50
-/ac Cure
-:else
-/say all good
-:endif
+if ({hpp} < 50) {
+    /ac Cure
+}
+else {
+    /say all good
+}
 ```
 
-Everything between `:if` and `:endif` runs only when the condition holds; the optional `:else` block runs when it does not. A block can contain multiple commands, and blocks can be nested.
+Everything inside the braces after `if (...)` runs only when the condition holds. Add an `else { }` block for the other case, or chain several checks with `else if (...)`, which runs the first branch whose condition is true:
+
+```
+if ({hpp} < 25) {
+    /ac Benediction
+}
+else if ({hpp} < 50) {
+    /ac Cure
+}
+else {
+    /say all good
+}
+```
+
+Blocks can hold multiple lines and can be nested inside each other. Indent with Tab and remove indentation with Shift + Tab to keep nested blocks readable.
 
 A condition compares values with `==`, `!=`, `<`, `>`, `<=`, `>=`, and you can combine comparisons with `&&` (and) and `||` (or). Either side can be a variable, a parameter, or plain text, so conditions can react to game state or to what you typed:
 
 ```
-:if {incombat} && {hpp} < 50
-:if {job} == WHM || {job} == SCH
-:if {0} == on
-:if {time24} >= 17:00 || {time24} <= 05:00
+if ({incombat} && {hpp} < 50) {
+if ({job} == WHM || {job} == SCH) {
+if ({0} == on) {
+if ({time24} >= 17:00 || {time24} <= 05:00) {
 ```
 
 That last line reacts to the clock: because `{time24}` and `{date}` are written with leading zeros (like 09:00 and 2026-07-09), they sort in the right order and can be compared with `<`, `>`, `<=`, and `>=`. This is why `{time24}` is the one to compare against, while `{time}` (like 3:45 PM) is just for showing.
 
-Text comparisons are case-insensitive, and numbers compare as numbers. The `:if`, `:else`, and `:endif` lines are never sent to chat, and the alias editor warns you if a block is left open or a condition cannot be understood.
+Text comparisons are case-insensitive, and numbers compare as numbers. The editor colors a brace or condition red when it is not valid, marks the line, and lists any open block or condition it cannot understand above the editor.
+
+You can stop the rest of an alias early with a `:return` line, which is handy as a guard near the top:
+
+```
+if ({incombat}) {
+    :return
+}
+/wave
+good luck, everyone!
+```
 
 You can also pause between lines with `:wait`, followed by a number of seconds:
 
@@ -196,22 +222,22 @@ The value is resolved when the line runs, so it can include other variables and 
 Because conditions treat `true` and `false` the same way as the built-in switches, a variable makes a handy on/off flag. Toggle it in one alias with `:set burst true` (or `false`), and check it in another:
 
 ```
-:if {burst}
-/say bursting
-:endif
+if ({burst}) {
+    /say bursting
+}
 ```
 
 ### Folders
 
 Create a folder with the **New Folder** button, then drag aliases into or out of it. Folders can be collapsed, renamed, and deleted from their right-click menu.
 
-### Multiline entry
+### The editor
 
-By default each line of an alias is its own row. You can switch to a single multiline editor in the settings, which is handy for pasting or editing longer aliases. The editor highlights your syntax as you type: commands, keywords, variables, parameters, quoted text, and option flags each get their own color, and anything malformed (a bad `:wait`, an unfinished `:if`, an unknown `:set` name, a mistyped keyword, or an unclosed `{`) is shown in red. It also shows line numbers, which you can turn off in the settings.
+Aliases are edited in a single multiline text box that highlights your syntax as you type: commands, keywords, variables, parameters, quoted text, and option flags each get their own color, and anything malformed (a bad `:wait`, an unclosed block, an unknown `:set` name, or a broken condition) is shown in red and marked on the line. It shows line numbers, which you can turn off in the settings. Tab indents the current lines and Shift + Tab removes indentation, so you can format blocks quickly.
 
 ### Settings
 
-Open settings with the cog icon in the Silkstring title bar, or the cog next to Silkstring in `/xlplugins`. You can set the delay between lines in milliseconds (0 to 1000, default 100), set how long an `:until` waits before giving up, allow unsafe waits that have no time limit, toggle multiline command entry, toggle line numbers in the editor, and open the Colors section to recolor the editor and interface to your taste.
+Open settings with the cog icon in the Silkstring title bar, or the cog next to Silkstring in `/xlplugins`. You can set the delay between lines in milliseconds (0 to 1000, default 100), set how long an `:until` waits before giving up, allow unsafe waits that have no time limit, toggle line numbers in the editor, and open the Colors section to recolor the editor and interface to your taste.
 
 ## Notes
 
