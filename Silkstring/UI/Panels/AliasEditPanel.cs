@@ -17,8 +17,7 @@ public class AliasEditPanel
     private readonly Configuration _configuration;
 
     private AliasEntry? _selectedAlias;
-    private List<string>? _detectedCycle;
-    private string? _blockError;
+    private List<Diagnostic> _diagnostics = new();
 
     private readonly TextEditor _editor;
     private int _editorAliasId = -1;
@@ -34,8 +33,7 @@ public class AliasEditPanel
         mainWindow.SelectionChanged += (alias, _) =>
         {
             _selectedAlias = alias;
-            if (alias != null) RefreshCycleCheck();
-            else { _detectedCycle = null; _blockError = null; }
+            RefreshDiagnostics();
         };
     }
 
@@ -51,11 +49,13 @@ public class AliasEditPanel
 
         DrawAliasHeader(alias);
         ImGui.Separator();
-        if (_blockError != null)
+        foreach (var d in _diagnostics)
         {
-            ImGui.TextColored(Palette.Error, _blockError);
-            ImGui.Spacing();
+            var color = d.Severity == Severity.Error ? Palette.Error : Palette.Warning;
+            var prefix = d.Line is { } line ? $"Line {line + 1}: " : "";
+            ImGui.TextColored(color, prefix + d.Message);
         }
+        if (_diagnostics.Count > 0) ImGui.Spacing();
         DrawCommandList(alias);
     }
 
@@ -79,12 +79,9 @@ public class AliasEditPanel
         if (ImGui.InputTextWithHint($"###aliasName{alias.UniqueId}", "activation command", ref alias.Name, 100))
         {
             _configuration.MarkDirty();
-            RefreshCycleCheck();
+            RefreshDiagnostics();
         }
-        var inputTooltip = _detectedCycle is { Count: > 0 }
-                               ? $"Cycle detected: {string.Join(" → ", _detectedCycle)}"
-                               : "Separate multiple aliases with | e.g. mew|meow|mreow";
-        ImGuiUtil.Tooltip(inputTooltip);
+        ImGuiUtil.Tooltip("Separate multiple aliases with | e.g. mew|meow|mreow");
     }
 
     private void DrawCommandList(AliasEntry alias)
@@ -116,7 +113,7 @@ public class AliasEditPanel
         {
             ApplyMultiline(alias, _editor.AllText);
             _configuration.MarkDirty();
-            RefreshCycleCheck();
+            RefreshDiagnostics();
         }
     }
 
@@ -146,7 +143,7 @@ public class AliasEditPanel
         if (ImGui.InputText($"###cmd{command.UniqueId}", ref command.Command, 200))
         {
             _configuration.MarkDirty();
-            RefreshCycleCheck();
+            RefreshDiagnostics();
         }
         ImGui.SameLine();
 
@@ -157,12 +154,11 @@ public class AliasEditPanel
         ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
     }
 
-    private void RefreshCycleCheck()
+    private void RefreshDiagnostics()
     {
-        if (_selectedAlias == null) return;
-        _detectedCycle = AliasValidator.FindCycle(_selectedAlias, _configuration.GetAliases());
+        if (_selectedAlias == null) { _diagnostics.Clear(); return; }
         var defined = new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase);
-        _blockError = AliasValidator.ValidateBlocks(_selectedAlias) ?? AliasValidator.ValidateSets(_selectedAlias, defined) ?? AliasValidator.ValidateWaits(_selectedAlias) ?? AliasValidator.ValidateUntils(_selectedAlias, _configuration.AllowUnsafeWaits);
+        _diagnostics = AliasValidator.Validate(_selectedAlias, defined, _configuration.AllowUnsafeWaits, _configuration.GetAliases());
     }
 
     private static void ApplyMultiline(AliasEntry alias, string text)
