@@ -13,7 +13,8 @@ internal enum BlockKind
     Set,
     Wait,
     Until,
-    Comment
+    Comment,
+    Return
 }
 
 internal sealed class BlockInterpreter
@@ -27,6 +28,7 @@ internal sealed class BlockInterpreter
         if (line.StartsWith(":if ", StringComparison.OrdinalIgnoreCase)) return (BlockKind.If, line[4..]);
         if (line.Equals(":else", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Else, "");
         if (line.Equals(":endif", StringComparison.OrdinalIgnoreCase)) return (BlockKind.EndIf, "");
+        if (line.Equals(":return", StringComparison.OrdinalIgnoreCase)) return (BlockKind.Return, "");
         if (IsStatement(line, ":set", out var set)) return (BlockKind.Set, set);
         if (IsStatement(line, ":wait", out var wait)) return (BlockKind.Wait, wait);
         if (IsStatement(line, ":until", out var until)) return (BlockKind.Until, until);

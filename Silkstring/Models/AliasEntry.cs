@@ -20,7 +20,7 @@ public class AliasEntry
     public string DisplayName = string.Empty;
     public string Name = string.Empty;
 
-    [JsonIgnore] public string[] triggers => Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    [JsonIgnore] public string[] Triggers => Name.Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
     [JsonIgnore] public string EffectiveName => string.IsNullOrWhiteSpace(DisplayName) ? Name : DisplayName;
     public bool Enabled = true;
     public List<CommandEntry> Output = new();
@@ -34,9 +34,9 @@ public class AliasEntry
 
     public bool IsValid()
     {
-        if (triggers.Length == 0) return false;
+        if (Triggers.Length == 0) return false;
 
-        foreach (var trigger in triggers)
+        foreach (var trigger in Triggers)
         {
             if (Blacklist.Contains(trigger)) return false;
             if (trigger.Contains(' ')) return false;
