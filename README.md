@@ -249,3 +249,7 @@ Open settings with the cog icon in the Silkstring title bar, or the cog next to 
 ## License
 
 AGPL-3.0-or-later
+
+## Attribution
+
+Silkstring is free software under the AGPL-3.0, and attribution is required. If you fork it, redistribute it, or reuse its code, you must keep the existing copyright and license notices in place and credit the original author (Oreo / devoreofox) with a visible link back to this repository (https://github.com/devoreofox/Silkstring). Please do not remove or hide that attribution.
