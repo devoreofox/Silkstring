@@ -60,6 +60,7 @@ jobs:
             "$output/Silkstring.dll",
             "$output/Silkstring.json",
             "$output/ECommons.dll",
+            "$output/Penumbra.Api.dll",
             "$output/DalamudTextEdit.dll",
             "$output/Silkstring.deps.json",
             "$output/images",

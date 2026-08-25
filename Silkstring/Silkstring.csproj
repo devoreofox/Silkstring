@@ -20,6 +20,7 @@
     
     <ItemGroup>
         <PackageReference Include="ECommons" Version="3.2.0.18" />
+        <PackageReference Include="Penumbra.Api" Version="5.15.1" />
     </ItemGroup>
 
     <ItemGroup>

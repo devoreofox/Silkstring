@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.1.0 - 2026-08-25
+### Added
+- Penumbra variables: if you have Penumbra installed, `{collection}` gives the collection your character is currently using, so an alias can announce or react to your active look. `{penumbra}` tells you whether Penumbra is turned on, which you can check in a condition
+- If Penumbra is not installed or not ready, these variables are simply left as written, like any other variable that cannot be read
+
 ## v2.0.0.0 - 2026-07-12
 ### Changed
 - Conditionals now use braces. Open a block with `if (condition) {`, close it with `}`, and use `else {` or `else if (condition) {` for the other branches. This replaces the old `:if`, `:else`, and `:endif` lines. Your existing conditional aliases are converted to the new format automatically the first time you update

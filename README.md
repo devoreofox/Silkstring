@@ -106,6 +106,8 @@ Silkstring includes variables for your character, job, HP and MP, combat state, 
 
 The time variables come in two flavors: `{time}` (like 3:45 PM) is for showing the time, while `{time24}` (like 15:45), `{date}`, `{hour}`, and `{minute}` are made for comparing, so you can gate lines by the clock (see Conditionals below). There is also `{daypart}`, which is simply morning, afternoon, evening, or night, and `{utc}` and `{utcdate}` for UTC (server) time.
 
+If you have [Penumbra](https://github.com/xivdev/Penumbra) installed, `{collection}` gives the collection your character is currently using, and `{penumbra}` tells you whether Penumbra is turned on (handy in a condition). When Penumbra is not installed or not ready, these are left as written, like any other variable that cannot be read.
+
 You can also define your own variables with `/silkstring variables` and use them just like the built-in ones (see User Variables below).
 
 ### Parameters
