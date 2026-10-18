@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Dalamud.Plugin;
 using Serilog;
 using Silkstring.Models;
@@ -11,6 +14,7 @@ namespace Silkstring.Services;
 public static class ConfigMigrator
 {
     public sealed record MigrationResult(IReadOnlyList<string> Messages, string? BackupPath);
+    private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public static MigrationResult? Migrate(Configuration config, IDalamudPluginInterface pi)
     {
@@ -96,6 +100,19 @@ public static class ConfigMigrator
         alias.Output = output;
     }
 
+    internal static void MigrateJsonToV4(JsonObject root)
+    {
+        if (root["Folders"] is not JsonArray folders) return;
+        foreach (var node in folders)
+        {
+            if (node is not JsonObject folder) continue;
+            folder.Remove("$type");
+            if (!folder.TryGetPropertyValue("Aliases", out var aliases)) continue;
+            folder.Remove("Aliases");
+            folder["Items"] = aliases;
+        }
+    }
+
     private static CommandEntry Line(int depth, string text)
         => new() { Command = new string(' ', depth * 4) + text };
 
@@ -113,6 +130,31 @@ public static class ConfigMigrator
         catch (Exception ex)
         {
             Log.Error(ex, "Failed to backup Silkstring config before migration");
+            return null;
+        }
+    }
+
+    public static string? MigrateFile(IDalamudPluginInterface pi)
+    {
+        var file = pi.ConfigFile;
+        if (!file.Exists) return null;
+        try
+        {
+            var root = JsonNode.Parse(File.ReadAllText(file.FullName))!.AsObject();
+            var version = root["Version"]?.GetValue<int>() ?? Configuration.CurrentVersion;
+            if (version >= Configuration.CurrentVersion) return null;
+
+            var backupPath = Backup(pi, version);
+            if (version < 4) MigrateJsonToV4(root);
+
+            var temp = file.FullName + ".tmp";
+            File.WriteAllText(temp, root.ToJsonString(WriteOptions));
+            File.Move(temp, file.FullName, overwrite: true);
+            return backupPath;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to migrate Silkstring config file");
             return null;
         }
     }
