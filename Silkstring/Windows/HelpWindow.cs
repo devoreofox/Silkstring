@@ -27,7 +27,7 @@ public class HelpWindow : Window, IDisposable
     private readonly CommandResolver _resolver;
 
 
-    public HelpWindow(CommandResolver resolver) : base("Silkstring Help###help")
+    public HelpWindow(CommandResolver resolver) : base("Silkstring Help###ss-help")
     {
         _resolver = resolver;
     }

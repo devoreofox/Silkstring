@@ -15,7 +15,7 @@ public class ChangelogWindow : Window, IDisposable
     private readonly string[] _versions;
     private int _selected;
 
-    public ChangelogWindow() : base("Silkstring Changelog###changelog")
+    public ChangelogWindow() : base("Silkstring Changelog###ss-changelog")
     {
         _sections = Changelog.Load();
         _versions = _sections.Select(s => s.Version).ToArray();

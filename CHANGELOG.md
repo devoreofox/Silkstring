@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1.1 - 2026-09-25
+### Fixed
+- Stopped Silkstring from insisting on holding hands with Little Luxuries if both plugins were installed
+
 ## v2.0.1.0 - 2026-08-25
 ### Added
 - Penumbra variables: if you have Penumbra installed, `{collection}` gives the collection your character is currently using, so an alias can announce or react to your active look. `{penumbra}` tells you whether Penumbra is turned on, which you can check in a condition

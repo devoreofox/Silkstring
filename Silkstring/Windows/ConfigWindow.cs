@@ -19,7 +19,7 @@ public class ConfigWindow : Window, IDisposable
     private static readonly ThemeColors Defaults = new();
     private static string Prettify(string name) => Regex.Replace(name, "(\\B[A-Z])", " $1");
 
-    public ConfigWindow(Plugin plugin) : base("Silkstring Settings###Config")
+    public ConfigWindow(Plugin plugin) : base("Silkstring Settings###ss-config")
     {
         configuration = plugin.Configuration;
     }

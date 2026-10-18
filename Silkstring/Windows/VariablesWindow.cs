@@ -18,7 +18,7 @@ public class VariablesWindow : Window, IDisposable
     private string _newName = string.Empty;
     private string? _addError;
 
-    public VariablesWindow(UserVariableStore store, CommandResolver resolver) : base("Silkstring Variables###Variables")
+    public VariablesWindow(UserVariableStore store, CommandResolver resolver) : base("Silkstring Variables###ss-variables")
     {
         _store = store;
         _resolver = resolver;

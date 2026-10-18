@@ -22,7 +22,7 @@ public class MainWindow : Window, IDisposable
     internal AliasFolder? SelectedFolder => _selectedFolder;
 
 
-    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog) :  base("Silkstring###Main")
+    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog) :  base("Silkstring###ss-main")
     {
         _selectPanel = new AliasSelectPanel(plugin.Configuration, this);
         _editPanel   = new AliasEditPanel(plugin.Configuration, this);
