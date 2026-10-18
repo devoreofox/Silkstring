@@ -33,7 +33,13 @@ public class FolderTree<T> where T : class
         _drawItem = drawItem;
     }
 
-    public void BeginRename(Folder<T> folder) => _rename.Begin(folder, folder.Name);
+    public void NewFolder()
+    {
+        _filter = string.Empty;
+        BeginRename(_store.AddFolder());
+    }
+
+    private void BeginRename(Folder<T> folder) => _rename.Begin(folder, folder.Name);
 
     public void DrawFilter()
     {
@@ -61,7 +67,7 @@ public class FolderTree<T> where T : class
         foreach (var folder in _store.Folders.ToList())
         {
             var items = Visible(folder.Items);
-            if (Filtering && items.Count == 0 && !_rename.IsRenaming(folder)) continue;
+            if (Filtering && items.Count == 0) continue;
 
             bool open;
             bool needsTreePop = false;

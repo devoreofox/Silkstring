@@ -28,7 +28,7 @@ public class AliasEditPanel
             SyntaxHighlighter = new SilkstringHighlighter(() => new HashSet<string>(_configuration.UserVariables.Select(v => v.Name), StringComparer.OrdinalIgnoreCase))
         };
         _editor.Renderer.ColorizeEveryFrame = true;
-        mainWindow.SelectionChanged += (alias, _) =>
+        mainWindow.SelectionChanged += alias =>
         {
             _selectedAlias = alias;
             RefreshDiagnostics();
