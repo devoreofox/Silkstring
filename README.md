@@ -11,7 +11,7 @@ A Dalamud plugin for FFXIV that lets you define custom command aliases. Each ali
 - Insert live game state with variables such as `{character}` and `{job}`
 - Define your own variables and change them on the fly from inside an alias
 - Give an alias several triggers using a `|` separator
-- Organize aliases into collapsible folders with drag and drop
+- Organize aliases and variables into collapsible folders with drag and drop
 - Set a friendly display name for an alias, separate from its trigger
 - Filter aliases by name, and import, export, or clone them
 - Enable or disable an alias without deleting it
@@ -208,9 +208,11 @@ You can also hold an alias in place until a condition becomes true with `:until`
 
 ### User Variables
 
-Alongside the built-in variables, you can define your own. Open the Variables window with `/silkstring variables`, type a name, and give it a value. Names can use letters, numbers, and underscores, and cannot reuse a built-in variable name. You can also give each one an optional description, which appears next to it in the Variables tab of the help window.
+Alongside the built-in variables, you can define your own. Open the Variables window with `/silkstring variables` or the Variables button in the main window's title bar, type a name, and give it a value. Names can use letters, numbers, and underscores, and cannot reuse a built-in variable name. You can also give each one an optional description, which appears next to it in the Variables tab of the help window.
 
 Your variables work just like the built-in ones: insert them anywhere with `{name}`, and they appear in the Variables tab of the help window.
+
+Variables can be grouped into folders, just like aliases: create one with the folder button next to the add button, then drag variables into or out of it. Right-click a variable to rename it, and use the filter box to search names, values, and descriptions. Renaming a variable does not change aliases that already use the old name, so update those to the new name yourself.
 
 You can change a variable from inside an alias with `:set`:
 
@@ -231,7 +233,7 @@ if ({burst}) {
 
 ### Folders
 
-Create a folder with the **New Folder** button, then drag aliases into or out of it. Folders can be collapsed, renamed, and deleted from their right-click menu.
+Create a folder with the **New Folder** button, then drag aliases into or out of it. Folders can be collapsed, renamed, and deleted from their right-click menu. If the filter has text in it, making a new folder clears the filter so you can see and name the new folder. The Variables window has folders too, and they work the same way.
 
 ### The editor
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.1.0.0 - 2026-10-19
+### Added
+- Folders for your variables: create a folder in the Variables window and drag variables into or out of it, just like aliases
+- Variables can now be renamed from their right-click menu
+- A filter box in the Variables window that searches names, values, and descriptions
+- A Variables button in the main window's title bar, so you can open your variables without typing a command
+
+### Changed
+- The Variables window has a new layout: each variable's name sits on its own line next to the delete button, with its value and description lined up underneath
+- Variables are now listed alphabetically
+
+### Fixed
+- Deleting an alias right after dragging it into a different folder now works. Before, it could quietly do nothing
+- Cloning an alias after moving it, or after deleting its folder, now always puts the copy next to the original. Before, the copy could end up in the wrong folder or disappear
+- Making a new folder while the filter has text in it now clears the filter, so the new folder shows up and you can name it right away. Before, it stayed hidden
+
+### Notes
+- Your alias folders are converted to a new format automatically the first time you update, and a backup of your previous configuration is saved first (for example `Silkstring.v3.backup.json`). If you ever go back to an older version of Silkstring, restore that backup first
+- Renaming a variable does not yet update aliases that already use the old name, so edit those aliases to use the new one
+
 ## v2.0.1.1 - 2026-09-25
 ### Fixed
 - Stopped Silkstring from insisting on holding hands with Little Luxuries if both plugins were installed
