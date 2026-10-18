@@ -29,12 +29,14 @@ public class Configuration : IPluginConfiguration
     }
     public bool AllowUnsafeWaits { get; set; }
 
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
     public string? LastSeenVersion { get; set; }
     public int Version { get; set; } = CurrentVersion;
 
-    public List<AliasFolder> Folders = new();
+    public List<Folder<AliasEntry>> Folders = new();
     public List<AliasEntry> Aliases = new();
+
+    public List<Folder<UserVariable>> VariableFolders = new();
     public List<UserVariable> UserVariables = new();
 
     public ThemeColors Theme = new();
@@ -62,6 +64,11 @@ public class Configuration : IPluginConfiguration
 
     public IEnumerable<AliasEntry> GetAliases()
     {
-        return Aliases.Concat(Folders.SelectMany(f => f.Aliases));
+        return Aliases.Concat(Folders.SelectMany(f => f.Items));
+    }
+
+    public IEnumerable<UserVariable> GetVariables()
+    {
+        return UserVariables.Concat(VariableFolders.SelectMany(f => f.Items));
     }
 }

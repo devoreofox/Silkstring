@@ -7,6 +7,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiNotification;
 using Serilog;
 using Silkstring.Models;
+using Silkstring.Services;
 using Silkstring.Windows;
 
 namespace Silkstring.UI.Panels;
@@ -15,20 +16,21 @@ public class SelectPanelFooter
 {
     private const int FooterButtonCount = 5;
 
-    private readonly Configuration _configuration;
+    private readonly FolderStore<AliasEntry> _store;
     private readonly MainWindow _mainWindow;
     private readonly Action<AliasEntry> _beginRenameAlias;
-    private readonly Action<AliasFolder> _beginRenameFolder;
+    private readonly Action _newFolder;
 
     public SelectPanelFooter(
-        Configuration configuration, MainWindow mainWindow, Action<AliasEntry> beginRenameAlias,
-        Action<AliasFolder> beginRenameFolder)
+        FolderStore<AliasEntry> store, MainWindow mainWindow, Action<AliasEntry> beginRenameAlias,
+        Action newFolder)
     {
-        _configuration = configuration;
+        _store = store;
         _mainWindow = mainWindow;
         _beginRenameAlias = beginRenameAlias;
-        _beginRenameFolder = beginRenameFolder;
+        _newFolder = newFolder;
     }
+
     public void Draw()
     {
         var available = ImGui.GetContentRegionAvail();
@@ -40,9 +42,8 @@ public class SelectPanelFooter
         if (DrawIconButton(FontAwesomeIcon.Plus, buttonSize, "New Alias"))
         {
             var newAlias = new AliasEntry();
-            _configuration.Aliases.Add(newAlias);
-            _configuration.Save();
-            _mainWindow.SetSelection(newAlias, null);
+            _store.Add(newAlias);
+            _mainWindow.SetSelection(newAlias);
             _beginRenameAlias(newAlias);
         }
 
@@ -56,9 +57,8 @@ public class SelectPanelFooter
                     JsonSerializer.Deserialize<AliasEntry>(json, AliasEntry.SerializerOptions);
                 if (imported != null)
                 {
-                    _configuration.Aliases.Add(imported);
-                    _configuration.Save();
-                    _mainWindow.SetSelection(imported, null);
+                    _store.Add(imported);
+                    _mainWindow.SetSelection(imported);
                     _beginRenameAlias(imported);
                 }
             }
@@ -80,34 +80,21 @@ public class SelectPanelFooter
         {
             var source = _mainWindow.SelectedAlias!;
             var cloned = source.Clone();
-
-            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Add(cloned);
-            else _configuration.Aliases.Add(cloned);
-
-            _configuration.Save();
-            _mainWindow.SetSelection(cloned, _mainWindow.SelectedFolder);
+            _store.Add(cloned, _store.FolderOf(source));
+            _mainWindow.SetSelection(cloned);
             _beginRenameAlias(cloned);
         }
 
         ImGui.SameLine();
-        if (DrawIconButton(FontAwesomeIcon.FolderPlus, buttonSize, "New Folder"))
-        {
-            var newFolder = new AliasFolder();
-            _configuration.Folders.Add(newFolder);
-            _configuration.Save();
-            _beginRenameFolder(newFolder);
-        }
+        if (DrawIconButton(FontAwesomeIcon.FolderPlus, buttonSize, "New Folder")) _newFolder();
 
         ImGui.SameLine();
         if (DrawIconButton(FontAwesomeIcon.Trash, buttonSize,
                            canDelete ? "Delete Selected" : "Hold Shift + Ctrl to delete",
                            disabled: !canDelete || _mainWindow.SelectedAlias == null))
         {
-            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Remove(_mainWindow.SelectedAlias!);
-            else _configuration.Aliases.Remove(_mainWindow.SelectedAlias!);
-
-            _mainWindow.SetSelection(null, null);
-            _configuration.Save();
+            _store.Remove(_mainWindow.SelectedAlias!);
+            _mainWindow.SetSelection(null);
         }
 
         ImGui.PopStyleVar();

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -15,6 +16,8 @@ public class VariablesWindow : Window, IDisposable
 {
     private readonly UserVariableStore _store;
     private readonly CommandResolver _resolver;
+    private readonly FolderTree<UserVariable> _tree;
+    private readonly InlineRename<UserVariable> _rename = new();
     private string _newName = string.Empty;
     private string? _addError;
 
@@ -22,6 +25,7 @@ public class VariablesWindow : Window, IDisposable
     {
         _store = store;
         _resolver = resolver;
+        _tree = new FolderTree<UserVariable>(store, "VARIABLE", v => v.Name, v => [v.Name, v.Value, v.Description], DrawVariableRow);
     }
 
     public void Dispose() { }
@@ -39,7 +43,15 @@ public class VariablesWindow : Window, IDisposable
     {
         DrawAddRow();
         ImGui.Separator();
-        DrawList();
+        if (!_store.All.Any() && _store.Folders.Count == 0)
+        {
+            ImGuiUtil.TextWrappedDisabled("No variables yet. Add one above, then use it with {name} in any alias.");
+            return;
+        }
+        _tree.DrawFilter();
+        ImGui.BeginChild("###varList", Vector2.Zero);
+        _tree.Draw();
+        ImGui.EndChild();
     }
 
     private void DrawAddRow()
@@ -58,42 +70,64 @@ public class VariablesWindow : Window, IDisposable
             }
         }
         ImGuiUtil.Tooltip("Add Variable");
+        ImGui.SameLine();
+        if (ImGuiComponents.IconButton((int)FontAwesomeIcon.FolderPlus, FontAwesomeIcon.FolderPlus)) _tree.NewFolder();
+        ImGuiUtil.Tooltip("Add Folder");
         if (_addError != null) ImGui.TextColored(Palette.Error, _addError);
     }
 
-    private void DrawList()
+    private void DrawVariableRow(UserVariable variable, Folder<UserVariable>? _)
     {
-        if (_store.Variables.Count == 0)
+        if (_rename.IsRenaming(variable))
         {
-            ImGuiUtil.TextWrappedDisabled("No variables yet. Add one above, then use it with {name} in any alias.");
+            if (_rename.Draw($"###rename{variable.UniqueId}", out var newName)) Rename(variable, newName.Trim());
             return;
         }
-
-        UserVariable? toRemove = null;
-        foreach (var variable in _store.Variables)
+        var deleteWidth = ImGui.GetFrameHeight();
+        ImGui.Selectable($"{variable.Name}###name{variable.UniqueId}", false, ImGuiSelectableFlags.None, new Vector2(ImGui.GetContentRegionAvail().X - deleteWidth - ImGui.GetStyle().ItemSpacing.X, 0));
+        if (ImGui.BeginPopupContextItem($"###context{variable.UniqueId}"))
         {
-            ImGui.TextUnformatted(variable.Name);
-            ImGui.SameLine(150);
-            ImGui.SetNextItemWidth(-60);
-            if (ImGui.InputText($"###val{variable.UniqueId}", ref variable.Value, 200)) _store.MarkChanged();
-            ImGui.SameLine();
-            var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
-            ImGui.BeginDisabled(!canDelete);
-            if (ImGuiComponents.IconButton(variable.UniqueId, FontAwesomeIcon.Trash)) toRemove = variable;
-            ImGui.EndDisabled();
-            ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
-            ImGui.Indent(150);
-            ImGui.SetNextItemWidth(-60);
-            if (ImGui.InputTextWithHint($"###desc{variable.UniqueId}", "description (optional)", ref variable.Description, 200)) _store.MarkChanged();
-            if (ImGui.IsItemDeactivatedAfterEdit()) _resolver.Refresh();
-            ImGui.Unindent(150);
-            ImGui.Spacing();
+            if (ImGui.MenuItem("Rename")) _rename.Begin(variable, variable.Name);
+            ImGui.EndPopup();
         }
+        _tree.DragSource(variable, $"Moving {variable.Name}...");
+        ImGui.SameLine();
+        var canDelete = ImGui.GetIO().KeyShift && ImGui.GetIO().KeyCtrl;
+        ImGui.BeginDisabled(!canDelete);
+        if (ImGuiComponents.IconButton(variable.UniqueId, FontAwesomeIcon.Trash)) Remove(variable);
+        ImGui.EndDisabled();
+        ImGuiUtil.Tooltip("Hold Shift + Ctrl to delete", true);
+        var labelWidth = ImGui.CalcTextSize("Description:").X + ImGui.GetStyle().ItemSpacing.X;
+        ImGui.Indent();
+        if (LabeledInput("Value:", $"###val{variable.UniqueId}", ref variable.Value, string.Empty, labelWidth)) _store.MarkChanged();
+        if (LabeledInput("Description:", $"###desc{variable.UniqueId}", ref variable.Description, "optional", labelWidth)) _store.MarkChanged();
+        if (ImGui.IsItemDeactivatedAfterEdit()) _resolver.Refresh();
+        ImGui.Unindent();
+        ImGui.Spacing();
+    }
 
-        if (toRemove != null)
-        {
-            _store.Remove(toRemove);
-            _resolver.Refresh();
-        }
+    private void Rename(UserVariable variable, string newName)
+    {
+        if (_store.ValidateName(newName, variable) != null) return;
+        variable.Name = newName;
+        _store.MarkChanged();
+        _resolver.Refresh();
+    }
+
+    private void Remove(UserVariable variable)
+    {
+        _store.Remove(variable);
+        _resolver.Refresh();
+    }
+
+    private static bool LabeledInput(string label, string id, ref string value, string hint, float labelWidth)
+    {
+        var start = ImGui.GetCursorPosX();
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted(label);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(start + labelWidth);
+        ImGui.SetNextItemWidth(-1);
+        return ImGui.InputTextWithHint(id, hint, ref value, 200);
     }
 }

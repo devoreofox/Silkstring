@@ -4,29 +4,34 @@ using Dalamud.Interface.Windowing;
 using System.Numerics;
 using Dalamud.Interface;
 using Silkstring.Models;
+using Silkstring.Services;
 using Silkstring.UI.Panels;
 
 namespace Silkstring.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    public event Action<AliasEntry?, AliasFolder?>? SelectionChanged;
+    public event Action<AliasEntry?>? SelectionChanged;
 
     private readonly AliasSelectPanel _selectPanel;
     private readonly AliasEditPanel   _editPanel;
 
     private AliasEntry? _selectedAlias;
-    private AliasFolder? _selectedFolder;
 
     internal AliasEntry? SelectedAlias => _selectedAlias;
-    internal AliasFolder? SelectedFolder => _selectedFolder;
 
-
-    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog) :  base("Silkstring###ss-main")
+    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog, Action openVariables) :  base("Silkstring###ss-main")
     {
-        _selectPanel = new AliasSelectPanel(plugin.Configuration, this);
+        var store = new FolderStore<AliasEntry>(plugin.Configuration.Aliases, plugin.Configuration.Folders, plugin.Configuration.Save);
+        _selectPanel = new AliasSelectPanel(store, this);
         _editPanel   = new AliasEditPanel(plugin.Configuration, this);
 
+        TitleBarButtons.Add(new TitleBarButton
+        {
+            Icon = FontAwesomeIcon.Code,
+            Click = _ => openVariables(),
+            ShowTooltip = () => ImGui.SetTooltip("Variables")
+        });
         TitleBarButtons.Add(new TitleBarButton
         {
             Icon = FontAwesomeIcon.Cog,
@@ -77,10 +82,9 @@ public class MainWindow : Window, IDisposable
         ImGui.EndChild();
     }
 
-    public void SetSelection(AliasEntry? alias, AliasFolder? folder)
+    public void SetSelection(AliasEntry? alias)
     {
         _selectedAlias = alias;
-        _selectedFolder = folder;
-        SelectionChanged?.Invoke(alias, folder);
+        SelectionChanged?.Invoke(alias);
     }
 }
