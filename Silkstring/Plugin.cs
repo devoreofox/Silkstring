@@ -47,10 +47,11 @@ public sealed class Plugin : IDalamudPlugin
 
     public Plugin()
     {
+        var backupPath = ConfigMigrator.MigrateFile(PluginInterface);
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Palette.Apply(Configuration.Theme);
 
-        var migration = ConfigMigrator.Migrate(Configuration, PluginInterface);
+        var migration = ConfigMigrator.Migrate(Configuration, PluginInterface, backupPath);
         if (migration != null)
         {
             var content = string.Join("\n", migration.Messages);

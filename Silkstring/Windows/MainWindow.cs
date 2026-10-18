@@ -10,16 +10,16 @@ namespace Silkstring.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    public event Action<AliasEntry?, AliasFolder?>? SelectionChanged;
+    public event Action<AliasEntry?, Folder<AliasEntry>?>? SelectionChanged;
 
     private readonly AliasSelectPanel _selectPanel;
     private readonly AliasEditPanel   _editPanel;
 
     private AliasEntry? _selectedAlias;
-    private AliasFolder? _selectedFolder;
+    private Folder<AliasEntry>? _selectedFolder;
 
     internal AliasEntry? SelectedAlias => _selectedAlias;
-    internal AliasFolder? SelectedFolder => _selectedFolder;
+    internal Folder<AliasEntry>? SelectedFolder => _selectedFolder;
 
 
     public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog) :  base("Silkstring###ss-main")
@@ -77,7 +77,7 @@ public class MainWindow : Window, IDisposable
         ImGui.EndChild();
     }
 
-    public void SetSelection(AliasEntry? alias, AliasFolder? folder)
+    public void SetSelection(AliasEntry? alias, Folder<AliasEntry>? folder)
     {
         _selectedAlias = alias;
         _selectedFolder = folder;

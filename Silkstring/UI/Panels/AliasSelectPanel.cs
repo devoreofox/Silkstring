@@ -17,9 +17,9 @@ public class AliasSelectPanel
     private string _filter = string.Empty;
 
     private AliasEntry? _draggedAlias;
-    private AliasFolder? _draggedFromFolder;
+    private Folder<AliasEntry>? _draggedFromFolder;
 
-    private readonly InlineRename<AliasFolder> _folderRename = new();
+    private readonly InlineRename<Folder<AliasEntry>> _folderRename = new();
     private readonly InlineRename<AliasEntry> _aliasRename = new();
 
     private const string DragDropType = "ALIAS";
@@ -56,7 +56,7 @@ public class AliasSelectPanel
     {
         foreach (var folder in _configuration.Folders.ToList())
         {
-            var filtered = folder.Aliases.Where(MatchesFilter)
+            var filtered = folder.Items.Where(MatchesFilter)
                                  .OrderBy(a => a.EffectiveName)
                                  .ToList();
 
@@ -122,7 +122,7 @@ public class AliasSelectPanel
         }
     }
 
-    private void DrawAliasRow(AliasEntry alias, AliasFolder? owningFolder)
+    private void DrawAliasRow(AliasEntry alias, Folder<AliasEntry>? owningFolder)
     {
         if (_aliasRename.IsRenaming(alias))
         {
@@ -157,7 +157,7 @@ public class AliasSelectPanel
         }
     }
 
-    private void DrawDropTarget(AliasFolder? target)
+    private void DrawDropTarget(Folder<AliasEntry>? target)
     {
         if (!ImGui.BeginDragDropTarget()) return;
         var payload = ImGui.AcceptDragDropPayload(DragDropType);
@@ -165,14 +165,14 @@ public class AliasSelectPanel
         ImGui.EndDragDropTarget();
     }
 
-    private void MoveAlias(AliasEntry alias, AliasFolder? from, AliasFolder? toFolder)
+    private void MoveAlias(AliasEntry alias, Folder<AliasEntry>? from, Folder<AliasEntry>? toFolder)
     {
         if (from == toFolder) return;
 
-        if (from != null) from.Aliases.Remove(alias);
+        if (from != null) from.Items.Remove(alias);
         else _configuration.Aliases.Remove(alias);
 
-        if (toFolder != null) toFolder.Aliases.Add(alias);
+        if (toFolder != null) toFolder.Items.Add(alias);
         else _configuration.Aliases.Add(alias);
 
         _configuration.Save();
@@ -194,11 +194,11 @@ public class AliasSelectPanel
 
     private void BeginRenameAlias(AliasEntry alias) => _aliasRename.Begin(alias, alias.DisplayName);
 
-    private void BeginRenameFolder(AliasFolder folder) => _folderRename.Begin(folder, folder.Name);
+    private void BeginRenameFolder(Folder<AliasEntry> folder) => _folderRename.Begin(folder, folder.Name);
 
-    private void DeleteFolder(AliasFolder folder)
+    private void DeleteFolder(Folder<AliasEntry> folder)
     {
-        _configuration.Aliases.AddRange(folder.Aliases);
+        _configuration.Aliases.AddRange(folder.Items);
         _configuration.Folders.Remove(folder);
         _configuration.Save();
     }

@@ -16,15 +16,16 @@ public static class ConfigMigrator
     public sealed record MigrationResult(IReadOnlyList<string> Messages, string? BackupPath);
     private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
-    public static MigrationResult? Migrate(Configuration config, IDalamudPluginInterface pi)
+    public static MigrationResult? Migrate(Configuration config, IDalamudPluginInterface pi, string? backupPath)
     {
         if (config.Version >= Configuration.CurrentVersion) return null;
 
-        var backupPath = Backup(pi, config.Version);
+        backupPath ??= Backup(pi, config.Version);
 
         var messages = new List<string>();
         if (config.Version < 2) messages.Add(MigrateToV2(config));
         if (config.Version < 3) messages.Add(MigrateToV3(config));
+        if (config.Version < 4) messages.Add("Updated your alias folders to the new format.");
         config.Version = Configuration.CurrentVersion;
         config.Save();
 

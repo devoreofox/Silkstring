@@ -18,11 +18,11 @@ public class SelectPanelFooter
     private readonly Configuration _configuration;
     private readonly MainWindow _mainWindow;
     private readonly Action<AliasEntry> _beginRenameAlias;
-    private readonly Action<AliasFolder> _beginRenameFolder;
+    private readonly Action<Folder<AliasEntry>> _beginRenameFolder;
 
     public SelectPanelFooter(
         Configuration configuration, MainWindow mainWindow, Action<AliasEntry> beginRenameAlias,
-        Action<AliasFolder> beginRenameFolder)
+        Action<Folder<AliasEntry>> beginRenameFolder)
     {
         _configuration = configuration;
         _mainWindow = mainWindow;
@@ -81,7 +81,7 @@ public class SelectPanelFooter
             var source = _mainWindow.SelectedAlias!;
             var cloned = source.Clone();
 
-            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Add(cloned);
+            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Items.Add(cloned);
             else _configuration.Aliases.Add(cloned);
 
             _configuration.Save();
@@ -92,7 +92,7 @@ public class SelectPanelFooter
         ImGui.SameLine();
         if (DrawIconButton(FontAwesomeIcon.FolderPlus, buttonSize, "New Folder"))
         {
-            var newFolder = new AliasFolder();
+            var newFolder = new Folder<AliasEntry>();
             _configuration.Folders.Add(newFolder);
             _configuration.Save();
             _beginRenameFolder(newFolder);
@@ -103,7 +103,7 @@ public class SelectPanelFooter
                            canDelete ? "Delete Selected" : "Hold Shift + Ctrl to delete",
                            disabled: !canDelete || _mainWindow.SelectedAlias == null))
         {
-            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Aliases.Remove(_mainWindow.SelectedAlias!);
+            if (_mainWindow.SelectedFolder != null) _mainWindow.SelectedFolder.Items.Remove(_mainWindow.SelectedAlias!);
             else _configuration.Aliases.Remove(_mainWindow.SelectedAlias!);
 
             _mainWindow.SetSelection(null, null);
