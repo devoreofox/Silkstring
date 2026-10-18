@@ -79,15 +79,15 @@ public sealed class Plugin : IDalamudPlugin
         ];
 
         var reserved = builtIn.SelectMany(p => p.GetVariables()).Select(v => v.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var store = new UserVariableStore(Configuration.UserVariables, reserved, Configuration.MarkDirty);
-        IVariableProvider[] providers = [..builtIn, new UserVariableProvider(() => store.Variables)];
+        var store = new UserVariableStore(Configuration.UserVariables, Configuration.VariableFolders, reserved, Configuration.MarkDirty);
+        IVariableProvider[] providers = [..builtIn, new UserVariableProvider(() => store.All)];
 
         _commandResolver = new CommandResolver(providers);
         _commandHandler = new CommandHandler(_commandResolver, Framework, store.TrySet);
         _chatInterceptor = new ChatInterceptor(GameInteropProvider, Framework, Configuration, _commandHandler);
 
         ConfigWindow = new ConfigWindow(this);
-        MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi, ToggleChangelogUi);
+        MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi, ToggleChangelogUi, ToggleVariablesUi);
         VariablesWindow = new VariablesWindow(store, _commandResolver);
         HelpWindow = new HelpWindow(_commandResolver);
         ChangelogWindow = new ChangelogWindow();

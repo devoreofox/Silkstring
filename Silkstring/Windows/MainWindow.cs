@@ -20,12 +20,18 @@ public class MainWindow : Window, IDisposable
 
     internal AliasEntry? SelectedAlias => _selectedAlias;
 
-    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog) :  base("Silkstring###ss-main")
+    public MainWindow(Plugin plugin, Action openSettings, Action openHelp, Action openChangelog, Action openVariables) :  base("Silkstring###ss-main")
     {
         var store = new FolderStore<AliasEntry>(plugin.Configuration.Aliases, plugin.Configuration.Folders, plugin.Configuration.Save);
         _selectPanel = new AliasSelectPanel(store, this);
         _editPanel   = new AliasEditPanel(plugin.Configuration, this);
 
+        TitleBarButtons.Add(new TitleBarButton
+        {
+            Icon = FontAwesomeIcon.Code,
+            Click = _ => openVariables(),
+            ShowTooltip = () => ImGui.SetTooltip("Variables")
+        });
         TitleBarButtons.Add(new TitleBarButton
         {
             Icon = FontAwesomeIcon.Cog,

@@ -7,7 +7,7 @@ public class UserVariableStoreTests
         => vars.Select(v => new UserVariable { Name = v.Name, Value = v.Value }).ToList();
 
     private static UserVariableStore Store(List<UserVariable> vars, Action onChanged, params string[] reserved)
-        => new(vars, new HashSet<string>(reserved, StringComparer.OrdinalIgnoreCase), onChanged);
+        => new(vars, new List<Folder<UserVariable>>(), new HashSet<string>(reserved, StringComparer.OrdinalIgnoreCase), onChanged);
 
     [Fact]
     public void SetsKnownVariable()

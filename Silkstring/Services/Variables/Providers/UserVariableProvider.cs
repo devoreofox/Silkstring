@@ -7,9 +7,9 @@ namespace Silkstring.Services.Variables.Providers;
 
 public sealed class UserVariableProvider : IVariableProvider
 {
-    private readonly Func<IReadOnlyList<UserVariable>> _variables;
+    private readonly Func<IEnumerable<UserVariable>> _variables;
 
-    public UserVariableProvider(Func<IReadOnlyList<UserVariable>> variables)
+    public UserVariableProvider(Func<IEnumerable<UserVariable>> variables)
     {
         _variables = variables;
     }

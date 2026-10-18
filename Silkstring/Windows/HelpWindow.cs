@@ -227,7 +227,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextColored(Palette.Heading, "Your Own Variables");
         ImGui.Separator();
         ImGui.Spacing();
-        ImGui.TextWrapped("Besides the built-in variables below, you can define your own. Open the Variables window with /silkstring variables, give it a name and a value, then use it anywhere with {name}.");
+        ImGui.TextWrapped("Besides the built-in variables below, you can define your own. Open the Variables window with /silkstring variables or the Variables button in the main window's title bar, give it a name and a value, then use it anywhere with {name}.");
         ImGui.Spacing();
         ImGui.TextWrapped("Change a variable from inside an alias with :set. The value is resolved when the line runs, saved automatically, and kept between sessions:");
         ImGui.Spacing();

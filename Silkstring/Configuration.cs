@@ -35,6 +35,8 @@ public class Configuration : IPluginConfiguration
 
     public List<Folder<AliasEntry>> Folders = new();
     public List<AliasEntry> Aliases = new();
+
+    public List<Folder<UserVariable>> VariableFolders = new();
     public List<UserVariable> UserVariables = new();
 
     public ThemeColors Theme = new();
@@ -63,5 +65,10 @@ public class Configuration : IPluginConfiguration
     public IEnumerable<AliasEntry> GetAliases()
     {
         return Aliases.Concat(Folders.SelectMany(f => f.Items));
+    }
+
+    public IEnumerable<UserVariable> GetVariables()
+    {
+        return UserVariables.Concat(VariableFolders.SelectMany(f => f.Items));
     }
 }
