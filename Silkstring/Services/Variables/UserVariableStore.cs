@@ -37,7 +37,12 @@ public sealed class UserVariableStore : FolderStore<UserVariable>
     public bool TrySet(string name, string value)
     {
         var variable = All.FirstOrDefault(v => string.Equals(v.Name, name, StringComparison.OrdinalIgnoreCase));
-        if (variable == null) return false;
+        if (variable == null)
+        {
+            if (ValidateName(name) != null) return false;
+            Add(new UserVariable { Name = name, Value = value });
+            return true;
+        }
         variable.Value = value;
         MarkChanged();
         return true;

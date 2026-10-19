@@ -12,6 +12,7 @@ public class CommandResolver
 {
     private readonly IVariableProvider[] _providers;
     private Dictionary<string, VariableDescriptor> _variables;
+    public bool IsDefined(string name) => _variables.ContainsKey(name);
 
     public CommandResolver(IEnumerable<IVariableProvider> providers)
     {

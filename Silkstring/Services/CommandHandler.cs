@@ -66,7 +66,8 @@ public class CommandHandler
                 await _framework.RunOnFrameworkThread(() =>
                 {
                     if (!_setUserVariable(name, _resolver.Resolve(rawValue, args)))
-                        Log.Warning("Unknown user variable in set: {Name}", name);
+                        Log.Warning("Could not set user variable: {Name}", name);
+                    else if (!_resolver.IsDefined(name)) _resolver.Refresh();
                 });
                 return false;
             }
