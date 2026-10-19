@@ -87,4 +87,6 @@ public class MainWindow : Window, IDisposable
         _selectedAlias = alias;
         SelectionChanged?.Invoke(alias);
     }
+
+    public void RefreshEditor() => _editPanel.Reload();
 }

@@ -88,7 +88,7 @@ public sealed class Plugin : IDalamudPlugin
 
         ConfigWindow = new ConfigWindow(this);
         MainWindow = new MainWindow(this, ToggleConfigUi, ToggleHelpUi, ToggleChangelogUi, ToggleVariablesUi);
-        VariablesWindow = new VariablesWindow(store, _commandResolver);
+        VariablesWindow = new VariablesWindow(store, _commandResolver, Configuration, MainWindow.RefreshEditor);
         HelpWindow = new HelpWindow(_commandResolver);
         ChangelogWindow = new ChangelogWindow();
 

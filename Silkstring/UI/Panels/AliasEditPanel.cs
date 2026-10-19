@@ -114,6 +114,12 @@ public class AliasEditPanel
         _editor.ErrorMarkers.SetErrorMarkers(markers);
     }
 
+    public void Reload()
+    {
+        _editorAliasId = -1;
+        RefreshDiagnostics();
+    }
+
     private static void ApplyMultiline(AliasEntry alias, string text)
     {
         var lines = text.Split('\n');

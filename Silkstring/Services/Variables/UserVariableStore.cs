@@ -21,6 +21,7 @@ public sealed class UserVariableStore : FolderStore<UserVariable>
     {
         if (string.IsNullOrWhiteSpace(name)) return "Enter a name";
         if (!NamePattern.IsMatch(name)) return "Use only letters, numbers, and underscores";
+        if (int.TryParse(name, out _)) return "Names can't be only numbers";
         if (_reserved.Contains(name)) return $"{name} is a built-in variable";
         if (All.Any(v => v != excluding && string.Equals(v.Name, name, StringComparison.OrdinalIgnoreCase))) return $"{name} is already defined";
         return null;

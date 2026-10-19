@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
@@ -21,10 +22,19 @@ public class VariablesWindow : Window, IDisposable
     private string _newName = string.Empty;
     private string? _addError;
 
-    public VariablesWindow(UserVariableStore store, CommandResolver resolver) : base("Silkstring Variables###ss-variables")
+    private readonly Configuration _configuration;
+    private readonly Action _aliasesChanged;
+    private PendingRename? _pendingRename;
+    private bool _openRenamePopup;
+
+    private sealed record PendingRename(string OldName, string NewName, List<AliasEntry> Aliases);
+
+    public VariablesWindow(UserVariableStore store, CommandResolver resolver, Configuration configuration, Action aliasesChanged) : base("Silkstring Variables###ss-variables")
     {
         _store = store;
         _resolver = resolver;
+        _configuration = configuration;
+        _aliasesChanged = aliasesChanged;
         _tree = new FolderTree<UserVariable>(store, "VARIABLE", v => v.Name, v => [v.Name, v.Value, v.Description], DrawVariableRow);
     }
 
@@ -43,6 +53,7 @@ public class VariablesWindow : Window, IDisposable
     {
         DrawAddRow();
         ImGui.Separator();
+        DrawRenamePopup();
         if (!_store.All.Any() && _store.Folders.Count == 0)
         {
             ImGuiUtil.TextWrappedDisabled("No variables yet. Add one above, then use it with {name} in any alias.");
@@ -109,9 +120,43 @@ public class VariablesWindow : Window, IDisposable
     private void Rename(UserVariable variable, string newName)
     {
         if (_store.ValidateName(newName, variable) != null) return;
+        var oldName = variable.Name;
         variable.Name = newName;
         _store.MarkChanged();
         _resolver.Refresh();
+        _aliasesChanged();
+        if (oldName.Equals(newName, StringComparison.OrdinalIgnoreCase)) return;
+        var uses = VariableRenamer.FindUses(_configuration.GetAliases(), oldName);
+        if (uses.Count == 0) return;
+        _pendingRename = new PendingRename(oldName, newName, uses);
+        _openRenamePopup = true;
+    }
+
+    private void DrawRenamePopup()
+    {
+        if (_openRenamePopup)
+        {
+            ImGui.OpenPopup("Update aliases?###renameVariable");
+            _openRenamePopup = false;
+        }
+        if (_pendingRename == null || !ImGui.BeginPopupModal("Update aliases?###renameVariable", ImGuiWindowFlags.AlwaysAutoResize)) return;
+        ImGui.TextUnformatted($"These aliases use {{{_pendingRename.OldName}}}. Update them to use {{{_pendingRename.NewName}}}?");
+        foreach (var alias in _pendingRename.Aliases) ImGui.BulletText(alias.EffectiveName);
+        if (ImGui.Button("Update"))
+        {
+            VariableRenamer.Rename(_pendingRename.Aliases, _pendingRename.OldName, _pendingRename.NewName);
+            _configuration.Save();
+            _aliasesChanged();
+            _pendingRename = null;
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Leave them"))
+        {
+            _pendingRename = null;
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndPopup();
     }
 
     private void Remove(UserVariable variable)
