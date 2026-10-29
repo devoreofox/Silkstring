@@ -15,6 +15,7 @@ public class CommandHandler
     private readonly CommandResolver _resolver;
     private readonly ConditionEvaluator _conditions;
     private readonly Func<string, string, bool> _setUserVariable;
+    public Action<string>? SendOriginal { get; set; }
     public CommandHandler(CommandResolver resolver, IFramework framework, Func<string, string, bool> setUserVariable)
     {
         _resolver = resolver;
@@ -84,8 +85,9 @@ public class CommandHandler
                 await WaitUntilAsync(condition, args, isUnsafe && allowUnsafe, untilTimeoutMs, cancellationToken);
                 return false;
             }
-            var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(text, args));
-            if (shouldSkip != null && cmd.StartsWith("/"))
+            var original = BlockInterpreter.StripOriginal(text, out var commandText);
+            var cmd = await _framework.RunOnFrameworkThread(() => _resolver.Resolve(commandText, args));
+            if (!original && shouldSkip != null && cmd.StartsWith("/"))
             {
                 var parts = cmd.TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 0) return false;
@@ -96,7 +98,11 @@ public class CommandHandler
                 }
             }
             if (sent) await Task.Delay(delayMs, cancellationToken);
-            await _framework.RunOnFrameworkThread(() => Chat.SendMessage(cmd));
+            await _framework.RunOnFrameworkThread(() =>
+            {
+                if (original && SendOriginal != null) SendOriginal(cmd);
+                else Chat.SendMessage(cmd);
+            });
             sent = true;
             return false;
         }

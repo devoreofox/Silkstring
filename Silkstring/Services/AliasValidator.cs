@@ -105,6 +105,7 @@ public static class AliasValidator
         {
             var text = command.Command.TrimStart();
             if (!text.StartsWith('/')) continue;
+            if (BlockInterpreter.StripOriginal(text, out _)) continue;
 
             var trimmed = text.TrimStart('/');
             if (string.IsNullOrWhiteSpace(trimmed)) continue;

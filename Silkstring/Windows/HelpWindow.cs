@@ -203,6 +203,10 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextWrapped("Silkstring detects cycles at authoring time and will warn you in the alias editor if one is found. " +
                           "A runtime guard also prevents cyclic commands from executing even if one slips through, " +
                           "skipping the offending command and continuing with the rest of the sequence.");
+        ImGui.Spacing();
+        ImGui.TextWrapped("When you want an alias to call the real game command it shares a name with, add -original to the end of that line. " +
+                          "It sends the command straight to the game instead of back through your alias, and those lines are left out of cycle detection. " +
+                          "For example, an alias named /glamour can still call the real /glamour with a line like /glamour {1..} -original.");
     }
 
 

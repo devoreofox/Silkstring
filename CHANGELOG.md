@@ -5,6 +5,7 @@
 - Glamourer variables: if you have Glamourer installed, each gear slot has its own variable that gives the item Glamourer is showing in that slot. There is one for every slot: `{head}`, `{body}`, `{hands}`, `{legs}`, `{feet}`, `{ears}`, `{neck}`, `{wrists}`, `{rightring}`, `{leftring}`, `{mainhand}`, `{offhand}`, and `{facewear}`. These read what Glamourer has applied, so they follow your glamour rather than the gear underneath it. A slot with nothing in it reads as `Nothing`. If Glamourer is not installed, the variable is left as written, like any other variable that cannot be read
 - `{glamourer}` tells you whether Glamourer is installed and available, handy in a condition
 - `{weapondrawn}`, `{hatvisible}`, and `{visordown}` tell you whether your weapon is drawn, your headgear is shown, and your visor is toggled down, so an alias can react to how your character is presented
+- An `-original` flag that lets an alias call a real game command it shares a name with. Add `-original` to the end of a command line and it runs the actual command instead of your alias, so an alias named `/glamour` can still call the real `/glamour` with a line like `/glamour {1..} -original`
 - Folders for your variables: create a folder in the Variables window and drag variables into or out of it, just like aliases
 - Variables can now be renamed from their right-click menu. If any aliases use the old name, you see which ones and can update them all to the new name or leave them as they are
 - A filter box in the Variables window that searches names, values, and descriptions

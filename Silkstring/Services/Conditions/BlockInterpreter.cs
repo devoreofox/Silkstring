@@ -33,6 +33,18 @@ internal static class BlockInterpreter
         return (false, trimmed);
     }
 
+    public static bool StripOriginal(string text, out string command)
+    {
+        var trimmed = text.TrimEnd();
+        if (trimmed.EndsWith(" -original", StringComparison.OrdinalIgnoreCase))
+        {
+            command = trimmed[..^" -original".Length].TrimEnd();
+            return true;
+        }
+        command = text;
+        return false;
+    }
+
     public static (string Name, string Value) ParseSet(string expression)
     {
         var trimmed = expression.Trim();

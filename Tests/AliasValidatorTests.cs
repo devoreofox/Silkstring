@@ -42,6 +42,13 @@ public class AliasValidatorTests
     }
 
     [Fact]
+    public void NoCycleForOriginalCommand()
+    {
+        var a = Alias("a", "/a -original");
+        Assert.Empty(AliasValidator.FindCycle(a, new[] { a }));
+    }
+
+    [Fact]
     public void NonSlashLineIsNotADependency()
     {
         var a = Alias("a", "a");

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
+using ECommons.Automation;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.Shell;
@@ -20,6 +21,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
 
     private CancellationTokenSource _cts = new();
     private readonly HashSet<string> _executingAliases = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _passThrough = new();
 
     private readonly Hook<ShellCommandModule.Delegates.ExecuteCommandInner> _hook;
 
@@ -28,6 +30,7 @@ public sealed unsafe class ChatInterceptor : IDisposable
         _framework = framework;
         _configuration = configuration;
         _commandHandler = commandHandler;
+        _commandHandler.SendOriginal = SendOriginal;
 
         _hook = interop.HookFromAddress<ShellCommandModule.Delegates.ExecuteCommandInner>(
             ShellCommandModule.MemberFunctionPointers.ExecuteCommandInner,
@@ -53,12 +56,18 @@ public sealed unsafe class ChatInterceptor : IDisposable
         return wasRunning;
     }
 
+    private void SendOriginal(string command)
+    {
+        _passThrough.Add(command);
+        Chat.SendMessage(command);
+    }
+
     private void ProcessChatInputDetour(ShellCommandModule* shellCommandModule, Utf8String* message, UIModule* uiModule)
     {
         try
         {
             var inputString = message->ToString();
-            if (inputString.StartsWith('/'))
+            if (!_passThrough.Remove(inputString) && inputString.StartsWith('/'))
             {
                 var splitString = inputString.Split(' ');
                 var commandName = splitString[0][1..];

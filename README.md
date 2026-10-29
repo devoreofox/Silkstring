@@ -81,6 +81,15 @@ good luck, everyone!
 ```
 This runs `/say Hello!`, then `/emote waves`, then sends "good luck, everyone!" to your current channel.
 
+When an alias shares its name with a real game command, a line that calls that command would normally be caught by Silkstring and skipped, so an alias cannot trigger itself. Add `-original` to the end of such a line to send it straight to the real command instead:
+
+```
+/glamour apply NothingHead | self -original
+/glamour {1..} -original
+```
+
+This lets an alias named `/glamour` still call the actual `/glamour`, including passing the rest of your input through to it. Lines that end with `-original` are also left out of cycle detection, since they do not loop back into your alias.
+
 ### Comments
 
 Any line that starts with `#` is a comment. It is left out when the alias runs and shown in its own color in the editor, so you can label an alias or leave yourself notes:
