@@ -20,6 +20,7 @@
     
     <ItemGroup>
         <PackageReference Include="ECommons" Version="3.2.0.18" />
+        <PackageReference Include="Glamourer.Api" Version="2.8.2" />
         <PackageReference Include="Penumbra.Api" Version="5.15.1" />
     </ItemGroup>
 

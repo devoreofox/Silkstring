@@ -30,17 +30,6 @@ public class UserVariableStoreTests
     }
 
     [Fact]
-    public void UnknownNameDoesNothing()
-    {
-        var vars = Vars(("mode", "raid"));
-        var changed = false;
-        var store = Store(vars, () => changed = true);
-        Assert.False(store.TrySet("other", "x"));
-        Assert.Equal("raid", vars[0].Value);
-        Assert.False(changed);
-    }
-
-    [Fact]
     public void BuiltInNameIsNotSettable()
     {
         var store = Store(Vars(("mode", "raid")), () => { }, "job");

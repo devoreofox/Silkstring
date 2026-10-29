@@ -236,7 +236,7 @@ public class HelpWindow : Window, IDisposable
         ImGui.TextDisabled(":set greeting hi {0}");
         ImGui.Unindent();
         ImGui.Spacing();
-        ImGui.TextWrapped("A :set only works on a variable you have already created. The alias editor warns you if it names one that does not exist.");
+        ImGui.TextWrapped("A :set on a variable that does not exist yet creates it. The alias editor marks that line with a warning, so a typo in the name stands out.");
         ImGui.Spacing();
 
         ImGui.TextColored(Palette.Heading, "Available Variables");

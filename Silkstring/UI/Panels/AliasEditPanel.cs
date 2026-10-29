@@ -20,12 +20,15 @@ public class AliasEditPanel
     private readonly TextEditor _editor;
     private int _editorAliasId = -1;
 
-    public AliasEditPanel(Configuration configuration, MainWindow mainWindow)
+    private readonly Func<string, string?> _validateVariableName;
+
+    public AliasEditPanel(Configuration configuration, Func<string, string?> validateVariableName, MainWindow mainWindow)
     {
         _configuration = configuration;
+        _validateVariableName = validateVariableName;
         _editor = new TextEditor
         {
-            SyntaxHighlighter = new SilkstringHighlighter(() => new HashSet<string>(_configuration.GetVariables().Select(v => v.Name), StringComparer.OrdinalIgnoreCase))
+            SyntaxHighlighter = new SilkstringHighlighter(() => new HashSet<string>(_configuration.GetVariables().Select(v => v.Name), StringComparer.OrdinalIgnoreCase), validateVariableName)
         };
         _editor.Renderer.ColorizeEveryFrame = true;
         mainWindow.SelectionChanged += alias =>
@@ -107,7 +110,7 @@ public class AliasEditPanel
     {
         if (_selectedAlias == null) { _diagnostics.Clear(); _editor.ErrorMarkers.SetErrorMarkers(new()); return; }
         var defined = new HashSet<string>(_configuration.GetVariables().Select(v => v.Name), StringComparer.OrdinalIgnoreCase);
-        _diagnostics = AliasValidator.Validate(_selectedAlias, defined, _configuration.AllowUnsafeWaits, _configuration.GetAliases());
+        _diagnostics = AliasValidator.Validate(_selectedAlias, defined, _validateVariableName, _configuration.AllowUnsafeWaits, _configuration.GetAliases());
         var markers = new Dictionary<int, object>();
         foreach (var d in _diagnostics)
             if (d.Line is { } ln) markers[ln + 1] = d.Message;

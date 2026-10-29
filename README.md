@@ -108,6 +108,8 @@ The time variables come in two flavors: `{time}` (like 3:45 PM) is for showing t
 
 If you have [Penumbra](https://github.com/xivdev/Penumbra) installed, `{collection}` gives the collection your character is currently using, and `{penumbra}` tells you whether Penumbra is turned on (handy in a condition). When Penumbra is not installed or not ready, these are left as written, like any other variable that cannot be read.
 
+If you have [Glamourer](https://github.com/Ottermandias/Glamourer) installed, each gear slot has a variable that gives the item Glamourer is showing there: `{head}`, `{body}`, `{hands}`, `{legs}`, `{feet}`, `{ears}`, `{neck}`, `{wrists}`, `{rightring}`, `{leftring}`, `{mainhand}`, `{offhand}`, and `{facewear}`. These follow your glamour rather than the gear underneath it. A slot with nothing in it reads as `Nothing`. When Glamourer is not installed, the variable is left as written. There is also `{glamourer}` (whether Glamourer is installed and available), and `{weapondrawn}`, `{hatvisible}`, and `{visordown}` for whether your weapon is drawn, your headgear is shown, and your visor is toggled down.
+
 You can also define your own variables with `/silkstring variables` and use them just like the built-in ones (see User Variables below).
 
 ### Parameters
@@ -212,7 +214,7 @@ Alongside the built-in variables, you can define your own. Open the Variables wi
 
 Your variables work just like the built-in ones: insert them anywhere with `{name}`, and they appear in the Variables tab of the help window.
 
-Variables can be grouped into folders, just like aliases: create one with the folder button next to the add button, then drag variables into or out of it. Right-click a variable to rename it, and use the filter box to search names, values, and descriptions. Renaming a variable does not change aliases that already use the old name, so update those to the new name yourself.
+Variables can be grouped into folders, just like aliases: create one with the folder button next to the add button, then drag variables into or out of it. Right-click a variable to rename it, and use the filter box to search names, values, and descriptions. When you rename a variable that aliases use, Silkstring lists those aliases and offers to update them to the new name.
 
 You can change a variable from inside an alias with `:set`:
 
@@ -221,7 +223,7 @@ You can change a variable from inside an alias with `:set`:
 :set greeting hi {0}
 ```
 
-The value is resolved when the line runs, so it can include other variables and parameters, and the result is saved automatically and kept between sessions. A `:set` only affects a variable you have already created. If it names one that does not exist, nothing happens and the alias editor warns you.
+The value is resolved when the line runs, so it can include other variables and parameters, and the result is saved automatically and kept between sessions. If a `:set` names a variable that does not exist yet, it creates it for you, outside any folder in the Variables window. The alias editor still marks that line with a warning, so a typo in the name does not go unnoticed. A `:set` follows the same naming rules as the Variables window, so it cannot create a variable with a built-in name.
 
 Because conditions treat `true` and `false` the same way as the built-in switches, a variable makes a handy on/off flag. Toggle it in one alias with `:set burst true` (or `false`), and check it in another:
 
