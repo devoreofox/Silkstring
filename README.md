@@ -81,6 +81,15 @@ good luck, everyone!
 ```
 This runs `/say Hello!`, then `/emote waves`, then sends "good luck, everyone!" to your current channel.
 
+When an alias shares its name with a real game command, a line that calls that command would normally be caught by Silkstring and skipped, so an alias cannot trigger itself. Add `-original` to the end of such a line to send it straight to the real command instead:
+
+```
+/glamour apply NothingHead | self -original
+/glamour {1..} -original
+```
+
+This lets an alias named `/glamour` still call the actual `/glamour`, including passing the rest of your input through to it. Lines that end with `-original` are also left out of cycle detection, since they do not loop back into your alias.
+
 ### Comments
 
 Any line that starts with `#` is a comment. It is left out when the alias runs and shown in its own color in the editor, so you can label an alias or leave yourself notes:
@@ -107,6 +116,8 @@ Silkstring includes variables for your character, job, HP and MP, combat state, 
 The time variables come in two flavors: `{time}` (like 3:45 PM) is for showing the time, while `{time24}` (like 15:45), `{date}`, `{hour}`, and `{minute}` are made for comparing, so you can gate lines by the clock (see Conditionals below). There is also `{daypart}`, which is simply morning, afternoon, evening, or night, and `{utc}` and `{utcdate}` for UTC (server) time.
 
 If you have [Penumbra](https://github.com/xivdev/Penumbra) installed, `{collection}` gives the collection your character is currently using, and `{penumbra}` tells you whether Penumbra is turned on (handy in a condition). When Penumbra is not installed or not ready, these are left as written, like any other variable that cannot be read.
+
+If you have [Glamourer](https://github.com/Ottermandias/Glamourer) installed, each gear slot has a variable that gives the item Glamourer is showing there: `{head}`, `{body}`, `{hands}`, `{legs}`, `{feet}`, `{ears}`, `{neck}`, `{wrists}`, `{rightring}`, `{leftring}`, `{mainhand}`, `{offhand}`, and `{facewear}`. These follow your glamour rather than the gear underneath it. A slot with nothing in it reads as `Nothing`. When Glamourer is not installed, the variable is left as written. There is also `{glamourer}` (whether Glamourer is installed and available), and `{weapondrawn}`, `{hatvisible}`, and `{visordown}` for whether your weapon is drawn, your headgear is shown, and your visor is toggled down.
 
 You can also define your own variables with `/silkstring variables` and use them just like the built-in ones (see User Variables below).
 
@@ -212,7 +223,7 @@ Alongside the built-in variables, you can define your own. Open the Variables wi
 
 Your variables work just like the built-in ones: insert them anywhere with `{name}`, and they appear in the Variables tab of the help window.
 
-Variables can be grouped into folders, just like aliases: create one with the folder button next to the add button, then drag variables into or out of it. Right-click a variable to rename it, and use the filter box to search names, values, and descriptions. Renaming a variable does not change aliases that already use the old name, so update those to the new name yourself.
+Variables can be grouped into folders, just like aliases: create one with the folder button next to the add button, then drag variables into or out of it. Right-click a variable to rename it, and use the filter box to search names, values, and descriptions. When you rename a variable that aliases use, Silkstring lists those aliases and offers to update them to the new name.
 
 You can change a variable from inside an alias with `:set`:
 
@@ -221,7 +232,7 @@ You can change a variable from inside an alias with `:set`:
 :set greeting hi {0}
 ```
 
-The value is resolved when the line runs, so it can include other variables and parameters, and the result is saved automatically and kept between sessions. A `:set` only affects a variable you have already created. If it names one that does not exist, nothing happens and the alias editor warns you.
+The value is resolved when the line runs, so it can include other variables and parameters, and the result is saved automatically and kept between sessions. If a `:set` names a variable that does not exist yet, it creates it for you, outside any folder in the Variables window. The alias editor still marks that line with a warning, so a typo in the name does not go unnoticed. A `:set` follows the same naming rules as the Variables window, so it cannot create a variable with a built-in name.
 
 Because conditions treat `true` and `false` the same way as the built-in switches, a variable makes a handy on/off flag. Toggle it in one alias with `:set burst true` (or `false`), and check it in another:
 

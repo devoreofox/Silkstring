@@ -24,7 +24,7 @@ public class MainWindow : Window, IDisposable
     {
         var store = new FolderStore<AliasEntry>(plugin.Configuration.Aliases, plugin.Configuration.Folders, plugin.Configuration.Save);
         _selectPanel = new AliasSelectPanel(store, this);
-        _editPanel   = new AliasEditPanel(plugin.Configuration, this);
+        _editPanel   = new AliasEditPanel(plugin.Configuration, name => plugin.VariableStore.ValidateName(name), this);
 
         TitleBarButtons.Add(new TitleBarButton
         {
@@ -87,4 +87,6 @@ public class MainWindow : Window, IDisposable
         _selectedAlias = alias;
         SelectionChanged?.Invoke(alias);
     }
+
+    public void RefreshEditor() => _editPanel.Reload();
 }

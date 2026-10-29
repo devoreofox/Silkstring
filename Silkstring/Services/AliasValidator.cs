@@ -8,12 +8,12 @@ namespace Silkstring.Services;
 
 public static class AliasValidator
 {
-    public static List<Diagnostic> Validate(AliasEntry alias, ISet<string> definedVariables, bool allowUnsafe, IEnumerable<AliasEntry> allAliases)
+    public static List<Diagnostic> Validate(AliasEntry alias, ISet<string> definedVariables, Func<string, string?> validateName, bool allowUnsafe, IEnumerable<AliasEntry> allAliases)
     {
         var diagnostics = new List<Diagnostic>();
         diagnostics.AddRange(ValidateTrigger(alias));
         diagnostics.AddRange(ValidateBlocks(alias));
-        diagnostics.AddRange(ValidateSets(alias, definedVariables));
+        diagnostics.AddRange(ValidateSets(alias, definedVariables, validateName));
         diagnostics.AddRange(ValidateWaits(alias));
         diagnostics.AddRange(ValidateUntils(alias, allowUnsafe));
         var cycle = FindCycle(alias, allAliases);
@@ -47,7 +47,7 @@ public static class AliasValidator
 
     public static IEnumerable<Diagnostic> ValidateBlocks(AliasEntry alias) => BlockParser.Parse(alias.Output.Select(c => c.Command).ToList()).Diagnostics;
 
-    public static IEnumerable<Diagnostic> ValidateSets(AliasEntry alias, ISet<string> defined)
+    public static IEnumerable<Diagnostic> ValidateSets(AliasEntry alias, ISet<string> defined, Func<string, string?> validateName)
     {
         for (var i = 0; i < alias.Output.Count; i++)
         {
@@ -55,7 +55,10 @@ public static class AliasValidator
             if (kind != BlockKind.Set) continue;
             var (name, _) = BlockInterpreter.ParseSet(expression);
             if (string.IsNullOrEmpty(name)) { yield return new(":set needs a variable name", i); continue; }
-            if (!defined.Contains(name)) yield return new($"Unknown variable in :set: {name}", i);
+            if (defined.Contains(name)) continue;
+            var error = validateName(name);
+            if (error == null) yield return new($"{name} is not defined yet, :set will create it", i, Severity.Warning);
+            else yield return new($":set can't create {name}: {error}", i);
         }
     }
 
@@ -102,6 +105,7 @@ public static class AliasValidator
         {
             var text = command.Command.TrimStart();
             if (!text.StartsWith('/')) continue;
+            if (BlockInterpreter.StripOriginal(text, out _)) continue;
 
             var trimmed = text.TrimStart('/');
             if (string.IsNullOrWhiteSpace(trimmed)) continue;

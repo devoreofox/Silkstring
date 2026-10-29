@@ -14,6 +14,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
 {
     private const PaletteIndex Error = PaletteIndex.CharLiteral;
     private const PaletteIndex Flag = PaletteIndex.Preprocessor;
+    private const PaletteIndex Warning = PaletteIndex.Punctuation;
 
     private static readonly object Empty = new();
     private static readonly Regex TokenRegex = new(@"\{(\d+\.\.\d+|\.\.\d+|\d+\.\.|\w+|\*)\}", RegexOptions.Compiled);
@@ -21,8 +22,13 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
     private static readonly Regex FlagRegex = new(@"(?<!\S)-[A-Za-z]\w*", RegexOptions.Compiled);
 
     private readonly Func<ISet<string>> _definedVariables;
+    private readonly Func<string, string?> _validateName;
 
-    public SilkstringHighlighter(Func<ISet<string>> definedVariables) => _definedVariables = definedVariables;
+    public SilkstringHighlighter(Func<ISet<string>> definedVariables, Func<string, string?> validateName)
+    {
+        _definedVariables = definedVariables;
+        _validateName = validateName;
+    }
 
     public bool AutoIndentation => false;
     public int MaxLinesPerFrame => 1000;
@@ -64,8 +70,8 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
             case BlockKind.Set:
                 Paint(line, indent, exprStart, PaletteIndex.Keyword);
                 var (name, _) = BlockInterpreter.ParseSet(expression);
-                if (name.Length == 0 || !_definedVariables().Contains(name))
-                    Paint(line, exprStart, exprStart + Math.Max(name.Length, 1), Error);
+                if (name.Length == 0) Paint(line, exprStart, exprStart + 1, Error);
+                else if (!_definedVariables().Contains(name)) Paint(line, exprStart, exprStart + name.Length, _validateName(name) == null ? Warning : Error);
                 PaintContent(line, text, exprStart + name.Length);
                 break;
 
@@ -211,6 +217,7 @@ public sealed class SilkstringHighlighter : ISyntaxHighlighter
         r.SetColor(PaletteIndex.Number, U32(Palette.Parameter));
         r.SetColor(PaletteIndex.String, U32(Palette.String));
         r.SetColor(PaletteIndex.CharLiteral, U32(Palette.Error));
+        r.SetColor(PaletteIndex.Punctuation, U32(Palette.Warning));
         r.SetColor(PaletteIndex.LineNumber, U32(Palette.LineNumber));
         r.SetColor(PaletteIndex.Preprocessor, U32(Palette.Flag));
         r.SetColor(PaletteIndex.Comment, U32(Palette.Comment));

@@ -1,15 +1,21 @@
 # Changelog
 
-## v2.1.0.0 - 2026-10-19
+## v2.1.0.0 - 2026-10-28
 ### Added
+- Glamourer variables: if you have Glamourer installed, each gear slot has its own variable that gives the item Glamourer is showing in that slot. There is one for every slot: `{head}`, `{body}`, `{hands}`, `{legs}`, `{feet}`, `{ears}`, `{neck}`, `{wrists}`, `{rightring}`, `{leftring}`, `{mainhand}`, `{offhand}`, and `{facewear}`. These read what Glamourer has applied, so they follow your glamour rather than the gear underneath it. A slot with nothing in it reads as `Nothing`. If Glamourer is not installed, the variable is left as written, like any other variable that cannot be read
+- `{glamourer}` tells you whether Glamourer is installed and available, handy in a condition
+- `{weapondrawn}`, `{hatvisible}`, and `{visordown}` tell you whether your weapon is drawn, your headgear is shown, and your visor is toggled down, so an alias can react to how your character is presented
+- An `-original` flag that lets an alias call a real game command it shares a name with. Add `-original` to the end of a command line and it runs the actual command instead of your alias, so an alias named `/glamour` can still call the real `/glamour` with a line like `/glamour {1..} -original`
 - Folders for your variables: create a folder in the Variables window and drag variables into or out of it, just like aliases
-- Variables can now be renamed from their right-click menu
+- Variables can now be renamed from their right-click menu. If any aliases use the old name, you see which ones and can update them all to the new name or leave them as they are
 - A filter box in the Variables window that searches names, values, and descriptions
 - A Variables button in the main window's title bar, so you can open your variables without typing a command
 
 ### Changed
 - The Variables window has a new layout: each variable's name sits on its own line next to the delete button, with its value and description lined up underneath
 - Variables are now listed alphabetically
+- A `:set` on a variable that does not exist yet now creates it, instead of doing nothing. The editor shows a warning on that line, so a typo in the name still stands out
+- Variable names made only of numbers are no longer accepted, since a name like `{1}` always means one of the words typed after the alias
 
 ### Fixed
 - Deleting an alias right after dragging it into a different folder now works. Before, it could quietly do nothing
@@ -18,7 +24,6 @@
 
 ### Notes
 - Your alias folders are converted to a new format automatically the first time you update, and a backup of your previous configuration is saved first (for example `Silkstring.v3.backup.json`). If you ever go back to an older version of Silkstring, restore that backup first
-- Renaming a variable does not yet update aliases that already use the old name, so edit those aliases to use the new one
 
 ## v2.0.1.1 - 2026-09-25
 ### Fixed

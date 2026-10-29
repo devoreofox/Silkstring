@@ -9,6 +9,8 @@ public class AliasValidatorTests
     private static HashSet<string> Defined(params string[] names)
         => new(names, StringComparer.OrdinalIgnoreCase);
 
+    private static string? Valid(string _) => null;
+
     [Fact]
     public void DetectsDirectCycle()
     {
@@ -40,6 +42,13 @@ public class AliasValidatorTests
     }
 
     [Fact]
+    public void NoCycleForOriginalCommand()
+    {
+        var a = Alias("a", "/a -original");
+        Assert.Empty(AliasValidator.FindCycle(a, new[] { a }));
+    }
+
+    [Fact]
     public void NonSlashLineIsNotADependency()
     {
         var a = Alias("a", "a");
@@ -54,12 +63,13 @@ public class AliasValidatorTests
     [Fact] public void TriggerWithSpace() => Assert.NotEmpty(AliasValidator.ValidateTrigger(Alias("hello world")));
     [Fact] public void TriggerReserved() => Assert.NotEmpty(AliasValidator.ValidateTrigger(Alias("silkstring")));
 
-    [Fact] public void SetKnown() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined("foo")));
-    [Fact] public void SetCaseInsensitive() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", ":set FOO bar"), Defined("foo")));
-    [Fact] public void SetUnknown() => Assert.NotEmpty(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined()));
-    [Fact] public void SetNoName() => Assert.NotEmpty(AliasValidator.ValidateSets(Alias("a", ":set "), Defined("foo")));
-    [Fact] public void SetOneBadAmongGood() => Assert.NotEmpty(AliasValidator.ValidateSets(Alias("a", ":set foo a", ":set bar b"), Defined("foo")));
-    [Fact] public void SetNonSetLinesIgnored() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", "/say hi"), Defined()));
+    [Fact] public void SetKnown() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined("foo"), Valid));
+    [Fact] public void SetCaseInsensitive() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", ":set FOO bar"), Defined("foo"), Valid));
+    [Fact] public void SetUnknownWarns() => Assert.Equal(Severity.Warning, Assert.Single(AliasValidator.ValidateSets(Alias("a", ":set foo bar"), Defined(), Valid)).Severity);
+    [Fact] public void SetUncreatableErrors() => Assert.Equal(Severity.Error, Assert.Single(AliasValidator.ValidateSets(Alias("a", ":set job WHM"), Defined(), n => $"{n} is a built-in variable")).Severity);
+    [Fact] public void SetNoName() => Assert.NotEmpty(AliasValidator.ValidateSets(Alias("a", ":set "), Defined("foo"), Valid));
+    [Fact] public void SetOneBadAmongGood() => Assert.NotEmpty(AliasValidator.ValidateSets(Alias("a", ":set foo a", ":set bar b"), Defined("foo"), Valid));
+    [Fact] public void SetNonSetLinesIgnored() => Assert.Empty(AliasValidator.ValidateSets(Alias("a", "/say hi"), Defined(), Valid));
 
     [Fact] public void WaitValid() => Assert.Empty(AliasValidator.ValidateWaits(Alias("a", ":wait 2")));
     [Fact] public void WaitDecimal() => Assert.Empty(AliasValidator.ValidateWaits(Alias("a", ":wait 1.5")));
@@ -71,5 +81,6 @@ public class AliasValidatorTests
     [Fact] public void WaitNonWaitLinesIgnored() => Assert.Empty(AliasValidator.ValidateWaits(Alias("a", "/say hi")));
 
     [Fact] public void WaitReportsLine() => Assert.Equal(1, Assert.Single(AliasValidator.ValidateWaits(Alias("a", "/say hi", ":wait potato"))).Line);
-    [Fact] public void SetReportsEveryBadLine() => Assert.Equal(2, AliasValidator.ValidateSets(Alias("a", ":set foo a", ":set bar b", ":set baz c"), Defined("foo")).Count());
+    [Fact] public void SetReportsEveryBadLine() => Assert.Equal(2, AliasValidator.ValidateSets(Alias("a", ":set foo a", ":set bar b", ":set baz c"), Defined("foo"), Valid).Count());
+
 }

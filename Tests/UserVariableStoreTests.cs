@@ -30,20 +30,9 @@ public class UserVariableStoreTests
     }
 
     [Fact]
-    public void UnknownNameDoesNothing()
-    {
-        var vars = Vars(("mode", "raid"));
-        var changed = false;
-        var store = Store(vars, () => changed = true);
-        Assert.False(store.TrySet("other", "x"));
-        Assert.Equal("raid", vars[0].Value);
-        Assert.False(changed);
-    }
-
-    [Fact]
     public void BuiltInNameIsNotSettable()
     {
-        var store = Store(Vars(("mode", "raid")), () => { });
+        var store = Store(Vars(("mode", "raid")), () => { }, "job");
         Assert.False(store.TrySet("job", "WHM"));
     }
 
@@ -87,6 +76,7 @@ public class UserVariableStoreTests
     [InlineData("   ", "Enter a name")]
     [InlineData("has space", "Use only letters, numbers, and underscores")]
     [InlineData("no-dash", "Use only letters, numbers, and underscores")]
+    [InlineData("12", "Names can't be only numbers")]
     public void ValidatesNameFormat(string name, string? expected)
         => Assert.Equal(expected, Store(Vars(), () => { }).ValidateName(name));
 
@@ -104,5 +94,25 @@ public class UserVariableStoreTests
         var vars = Vars(("greeting", ""));
         var store = Store(vars, () => { });
         Assert.Null(store.ValidateName("greeting", vars[0]));
+    }
+
+    [Fact]
+    public void UnknownNameIsCreated()
+    {
+        var vars = Vars(("mode", "raid"));
+        var changed = false;
+        var store = Store(vars, () => changed = true);
+        Assert.True(store.TrySet("other", "x"));
+        Assert.Equal("x", vars.Single(v => v.Name == "other").Value);
+        Assert.True(changed);
+    }
+
+    [Fact]
+    public void InvalidNameIsNotCreated()
+    {
+        var vars = Vars();
+        var store = Store(vars, () => { });
+        Assert.False(store.TrySet("no-dash", "x"));
+        Assert.Empty(vars);
     }
 }
